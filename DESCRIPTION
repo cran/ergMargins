@@ -1,11 +1,11 @@
 Package: ergMargins
 Type: Package
 Title: Process Analysis for Exponential Random Graph Models
-Version: 0.1.0
-Authors@R: c(person("Scott", "Duxbury",email="duxbury.5@osu.edu", role=c("aut", "cre", "cph")), 
+Version: 0.1.1
+Authors@R: c(person("Scott", "Duxbury",email="sduxburycpt@gmail.com", role=c("aut", "cre", "cph")), 
     person("Bruce", "Desmarais",email="bdesmarais@psu.edu", role=c("ctb", "cph")), 
     person("Philip","Leifeld",email="philip.leifeld@essex.ac.uk",role=c("ctb","cph")))
-Maintainer: Scott Duxbury <duxbury.5@osu.edu>
+Maintainer: Scott Duxbury <sduxburycpt@gmail.com>
 Description: Calculates marginal effects and conducts process analysis in exponential family random graph models (ERGM).
     Includes functions to conduct mediation and moderation analyses and to diagnose
     multicollinearity.
@@ -19,13 +19,13 @@ Description: Calculates marginal effects and conducts process analysis in expone
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
-Imports: numDeriv, statnet, stats, btergm, ergm, Matrix, network,
-        xergm.common
+Imports: numDeriv, statnet, stats, ergm, Matrix, network, btergm,
+        methods, sna, xergm.common
 Suggests: MASS, knitr, rmarkdown
 NeedsCompilation: no
-Packaged: 2019-07-23 15:05:48 UTC; duxbury.5
+Packaged: 2020-05-22 14:01:17 UTC; 15179
 Author: Scott Duxbury [aut, cre, cph],
   Bruce Desmarais [ctb, cph],
   Philip Leifeld [ctb, cph]
 Repository: CRAN
-Date/Publication: 2019-07-26 11:00:05 UTC
+Date/Publication: 2020-05-22 15:00:03 UTC

@@ -8,7 +8,8 @@ ERGM function to compute average marginal effects for main effects or at various
 
 }
 \usage{
-ergm.AME(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE,return.at.2=FALSE)
+ergm.AME(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE,
+        return.at.2=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -110,7 +111,8 @@ main.eff<-ergm.AME(my.ergm,"mutual")
 sex.inter<-ergm.AME(my.ergm,"nodeifactor.sex.2","nodeofactor.sex.2","nodematch.sex")
 
 ##with moderator at specific values
-grade.inter<-ergm.AME(my.ergm,"nodeicov.grade","nodeocov.grade","absdiff.grade",at.2=c(9,12))
+grade.inter<-ergm.AME(my.ergm,"nodeicov.grade","nodeocov.grade","absdiff.grade",
+            at.2=c(9,12))
 
 ##when moderator changes from mean to mean +sd
 

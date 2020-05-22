@@ -108,7 +108,8 @@ main.eff<-ergm.MEM(my.ergm,"mutual")
 sex.inter<-ergm.MEM(my.ergm,"nodeifactor.sex.2","nodeofactor.sex.2","nodematch.sex")
 
 ##with moderator at specific levels
-grade.inter<-ergm.MEM(my.ergm,"nodeicov.grade","nodeocov.grade","absdiff.grade",at.2=c(9,12))
+grade.inter<-ergm.MEM(my.ergm,"nodeicov.grade","nodeocov.grade","absdiff.grade",
+          at.2=c(9,12))
 
 ##when moderator changes from mean to mean +sd
 tie.probs<-edge.prob2(my.ergm)

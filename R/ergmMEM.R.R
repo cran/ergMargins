@@ -31,6 +31,7 @@ ergm.MEM<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL,return.dydx=FALSE){
   dyad.mat<-dyad.mat[,-c(start.drops:ncol(dyad.mat))]
   vc <- stats::vcov(model)
   theta<-stats::coef(model)
+
   ##handle curved ergms by removing decay parameter
     #note that the micro-level change statistics are already properly weighted,
     #so decay term is not needed for predictions
@@ -43,6 +44,11 @@ ergm.MEM<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL,return.dydx=FALSE){
     vc<-vc[-c(curved.term),-c(curved.term)]
 
   }
+
+  if(any(names(theta)!=colnames(dyad.mat))){
+    colnames(dyad.mat)<-names(theta) #make sure names align
+  }
+
   #create marginal effects
   dyad.means<-colMeans(dyad.mat,na.rm=TRUE)
   p<-1/(1+exp(-dyad.means%*%theta))
