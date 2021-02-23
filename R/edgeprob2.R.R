@@ -34,10 +34,9 @@ edge.prob2<-function (model, verbose = FALSE)
   ##check for duplicated names
   if(class(object)=="ergm"){
     if(any(duplicated(network::get.vertex.attribute(model$network,"vertex.names")))){
-      stop(paste("Duplicated names detected in network; edgeprob function will fail.",
-                 "Please assign unique vertex names before using edgeprob.",
-                 "Recommended code:",
-                 "model$network%v%'vertex.names'<-1:network.size(model$network)"))
+
+      size<-network::network.size(model$network)
+      network::set.vertex.attribute(model$network,"vertex.names",1:size)
     }
   }
 

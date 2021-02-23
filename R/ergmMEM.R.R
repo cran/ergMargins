@@ -151,7 +151,7 @@ ergm.MEM<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL,return.dydx=FALSE){
           MEM<-matrix(c(MEM,MEM.se,MEM.z,P.MEM),nrow=1,ncol=4)
           colnames(MEM)<-c("MEM","Delta SE","Z","P")
           rownames(MEM)<-inter
-          message("NOTE: Nodematch is an interaction, but it is not a product term (e.g., inter!=var1*var2). Z statistics in summary(ergm) are unbiased.")
+          message("NOTE: Nodematch is an interaction, but it is not a product of the main effects (e.g., inter!=var1*var2). Returning the simple MEM for the interaction. Consider respecifying ERGM using nodefactor for main effects or absdiff instead of nodematch to measure homophily.")
           marginal.matrix<-signif(marginal.matrix,digits=5)
           MEM<-signif(MEM,digits=5)
           MEM<-list(MEM,marginal.matrix)
