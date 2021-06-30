@@ -22,11 +22,9 @@ edge.prob2<-function (model, verbose = FALSE)
   object<-model
   if (class(object) == "ergm") {
     tergm <- FALSE
-  }
-  else if (class(object) %in% c("btergm", "mtergm")) {
+  } else if (class(object) %in% c("btergm", "mtergm")) {
     tergm <- TRUE
-  }
-  else {
+  } else {
     stop(paste("The edgeprob function is only applicable to ergm, btergm, and",
                "mtergm objects."))
   }
@@ -49,7 +47,7 @@ edge.prob2<-function (model, verbose = FALSE)
   assign("offsmat", l$offsmat)
   form <- stats::as.formula(l$form)
   covnames <- l$covnames[-1]
-  coefs <- stats::coef(object)
+  coefs <- btergm::coef(object)
   if (verbose == TRUE) {
     message("Creating data frame with predictors...")
   }
@@ -59,14 +57,13 @@ edge.prob2<-function (model, verbose = FALSE)
     mat <- as.matrix(l$networks[[i]])
     imat <- matrix(rep(1:nrow(mat), ncol(mat)), nrow = nrow(mat))
     if ((class(l$networks[[i]]) == "network" && network::is.bipartite(l$networks[[i]])) ||
-        (class(l$networks[[i]]) == "matrix" && xergm.common::is.mat.onemode(l$networks[[i]]) ==
+        (class(l$networks[[i]]) == "matrix" && is.mat.onemode(l$networks[[i]]) ==
          FALSE)) {
       mn <- nrow(mat) + 1
       mx <- nrow(mat) + ncol(mat)
       jmat <- matrix(rep(mn:mx, nrow(mat)), nrow = nrow(mat),
                      byrow = TRUE)
-    }
-    else {
+    }else {
       jmat <- matrix(rep(1:ncol(mat), nrow(mat)), nrow = nrow(mat),
                      byrow = TRUE)
     }
@@ -85,7 +82,7 @@ edge.prob2<-function (model, verbose = FALSE)
   class(dyads[, length(colnames(dyads))]) <- "integer"
   class(dyads[, length(colnames(dyads)) - 1]) <- "integer"
   class(dyads[, length(colnames(dyads)) - 2]) <- "integer"
-  cf <- stats::coef(object)
+  cf <- btergm::coef(object)
   cf.length <- length(cf)
   cf <- cf[!cf %in% c(Inf, -Inf)]
   if (length(cf) != cf.length) {
@@ -96,14 +93,25 @@ edge.prob2<-function (model, verbose = FALSE)
   cbcoef <- cbind(cf)
   chgstat <- dyads[, 2:(ncol(dyads) - 3)]
   ##handle decay term in curved ergms
-  if(ergm::is.curved(object)){
-    curved.term<-vector(length=length(object$etamap$curved))
-    for(i in 1:length(object$etamap$curved)){
-    curved.term[i]<-object$etamap$curved[[i]]$from[2]
-    }
-    cbcoef<-cbcoef[-c(curved.term)]
-  }
+  if(class(object)=="mtergm" | class(object)=="btergm"){
 
+    if(ergm::is.curved(object@ergm)){
+      curved.term<-vector(length=length(object$etamap$curved))
+      for(i in 1:length(object$etamap$curved)){
+        curved.term[i]<-object$etamap$curved[[i]]$from[2]
+      }
+      cbcoef<-cbcoef[-c(curved.term)]
+    }
+
+  }else{
+          if(ergm::is.curved(object)){
+          curved.term<-vector(length=length(object$etamap$curved))
+          for(i in 1:length(object$etamap$curved)){
+          curved.term[i]<-object$etamap$curved[[i]]$from[2]
+          }
+          cbcoef<-cbcoef[-c(curved.term)]
+        }
+      }
   lp <- apply(chgstat, 1, function(x) t(x) %*% cbcoef)
   result <- c(1/(1 + exp(-lp)))
   i.name <- numeric(nrow(dyads))

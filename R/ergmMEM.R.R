@@ -7,7 +7,6 @@
 #' @param var2 is the name of the moderator, character string
 #' @param inter is the name of the interaction, character string
 #' @param at.2 is a vector specifying the levels of var2 at which to compute the marginal effects. If left NULL, it computes the MEM at all unique values of var2. Default is NULL.
-
 #If the moderator is binary or specified at only 2 levels,
 #the output object is a 2 dimensional list with one matrix of
 #marginal effects and another of the second differences
@@ -29,20 +28,37 @@ ergm.MEM<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL,return.dydx=FALSE){
   dyad.full.mat<-dyad.mat
   start.drops<-ncol(dyad.mat)-5
   dyad.mat<-dyad.mat[,-c(start.drops:ncol(dyad.mat))]
-  vc <- stats::vcov(model)
+
+  if(class(model)=="mtergm"|class(model)=="btergm"){
+    vc <- stats::vcov(model@ergm)
+    vc[!rownames(vc)%in%"offset(edgecov.offsmat)",!colnames(vc)%in%"offset(edgecov.offsmat)"]
+  }else{
+    vc <- stats::vcov(model)
+  }
   theta<-stats::coef(model)
 
   ##handle curved ergms by removing decay parameter
     #note that the micro-level change statistics are already properly weighted,
     #so decay term is not needed for predictions
-  if(ergm::is.curved(model)){
-    curved.term<-vector(length=length(model$etamap$curved))
-    for(i in 1:length(model$etamap$curved)){
-      curved.term[i]<-model$etamap$curved[[i]]$from[2]
-    }
-    theta<-theta[-c(curved.term)]
-    vc<-vc[-c(curved.term),-c(curved.term)]
+  ##handle decay term in curved ergms
+  if(class(model)=="mtergm" | class(model)=="btergm"){
 
+    if(ergm::is.curved(model@ergm)){
+      curved.term<-vector(length=length(model$etamap$curved))
+      for(i in 1:length(model$etamap$curved)){
+        curved.term[i]<-model$etamap$curved[[i]]$from[2]
+      }
+      cbcoef<-cbcoef[-c(curved.term)]
+    }
+
+  }else{
+    if(ergm::is.curved(model)){
+      curved.term<-vector(length=length(model$etamap$curved))
+      for(i in 1:length(model$etamap$curved)){
+        curved.term[i]<-model$etamap$curved[[i]]$from[2]
+      }
+      cbcoef<-cbcoef[-c(curved.term)]
+    }
   }
 
   if(any(names(theta)!=colnames(dyad.mat))){
@@ -65,8 +81,6 @@ ergm.MEM<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL,return.dydx=FALSE){
 
     MEM.fun<-function(theta){
 
-      tmp<-model
-      tmp$coeffcients<-theta
       ME.ergm<-sapply(names(theta),function(x)
         (p*(1-p)*theta[var1]))
       mean(ME.ergm,na.rm = TRUE)}
@@ -97,8 +111,6 @@ ergm.MEM<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL,return.dydx=FALSE){
 
           MEM.fun<-function(theta){
 
-            tmp<-model
-            tmp$coeffcients<-theta
             ME.ergm<-sapply(names(theta),function(x)
               (p*(1-p)*theta[var1]))
             mean(ME.ergm,na.rm = TRUE)}
@@ -112,8 +124,6 @@ ergm.MEM<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL,return.dydx=FALSE){
 
           MEM.fun<-function(theta){
 
-            tmp<-model
-            tmp$coeffcients<-theta
             ME.ergm<-sapply(names(theta),function(x)
               (p*(1-p)*theta[var2]))
             mean(ME.ergm,na.rm = TRUE)}
@@ -135,8 +145,6 @@ ergm.MEM<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL,return.dydx=FALSE){
           ##compute marginal effect
           MEM.fun<-function(theta){
 
-            tmp<-model
-            tmp$coeffcients<-theta
             ME.ergm<-sapply(names(theta),function(x)
               (p*(1-p)*theta[inter]))
             mean(ME.ergm,na.rm = TRUE)}
@@ -206,8 +214,6 @@ ergm.MEM<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL,return.dydx=FALSE){
 
         MEM.fun<-function(theta){
 
-          tmp<-model
-          tmp$coeffcients<-theta
           ME.ergm<-sapply(names(theta),function(x)
             (p*(1-p)*(theta[var1]+(theta[inter]*at.diffs))))
           mean(ME.ergm,na.rm = TRUE)}
@@ -224,8 +230,6 @@ ergm.MEM<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL,return.dydx=FALSE){
 
         MEM.fun<-function(theta){
 
-          tmp<-model
-          tmp$coeffcients<-theta
           ME.ergm<-sapply(names(theta),function(x)
             (p*(1-p)*(theta[var1]+(theta[inter]*at.2[[i]]))))
           mean(ME.ergm,na.rm = TRUE)}
