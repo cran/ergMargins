@@ -22,7 +22,15 @@
 #standard errors are computed using the delta method.
 
 
-ergm.AME<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE, return.at.2=FALSE){
+ergm.AME<-function(model,
+                   var1,
+                   var2=NULL,
+                   inter=NULL,
+                   at.2=NULL,
+                   at.controls=NULL,
+                   control_vals=NULL,
+                   return.dydx=FALSE,
+                   return.at.2=FALSE){
 
 
   ##get edge probabilities
@@ -32,26 +40,36 @@ ergm.AME<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE,
   start.drops<-ncol(dyad.mat)-5
   dyad.mat<-dyad.mat[,-c(start.drops:ncol(dyad.mat))]
 
-  if(class(model)=="mtergm"|class(model)=="btergm"){
+
+
+  if(class(model)%in%"mtergm"){
     vc <- stats::vcov(model@ergm)
-    vc<-vc[!rownames(vc)%in%"offset(edgecov.offsmat)",!colnames(vc)%in%"offset(edgecov.offsmat)"]
+    vc<-vc[!rownames(vc)%in%"edgecov.offsmat",!colnames(vc)%in%"edgecov.offsmat"]
   }else{
   vc <- stats::vcov(model)
   }
-  theta<-btergm::coef(model)
-
+  if(class(model)%in%"mlergm"){
+    theta<-model$theta
+    vc<-solve(vc) #invert the fisher matrix
+  }else{
+    theta<-btergm::coef(model)
+  }
+  #handle mlergm objects
+  if("mlergm"%in%class(model)){
+    class(model)<-"ergm"
+  }
 
   ##handle curved ergms by removing decay parameter
   #note that the micro-level change statistics are already properly weighted,
   #so decay term is not needed for predictions
-  if(class(model)=="mtergm" | class(model)=="btergm"){
+  if(class(model)%in%"mtergm"){
 
     if(ergm::is.curved(model@ergm)){
       curved.term<-vector(length=length(model$etamap$curved))
       for(i in 1:length(model$etamap$curved)){
         curved.term[i]<-model$etamap$curved[[i]]$from[2]
       }
-      cbcoef<-cbcoef[-c(curved.term)]
+      theta<-theta[-c(curved.term)]
     }
 
   }else{
@@ -60,13 +78,32 @@ ergm.AME<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE,
       for(i in 1:length(model$etamap$curved)){
         curved.term[i]<-model$etamap$curved[[i]]$from[2]
       }
-      cbcoef<-cbcoef[-c(curved.term)]
+      theta<-theta[-c(curved.term)]
     }
   }
 
 
   if(any(names(theta)!=colnames(dyad.mat))){
     colnames(dyad.mat)<-names(theta) #make sure names align
+  }
+
+  ##assign fixed values for controls when specified
+
+  if(!is.null(at.controls)){
+    if(is.null(control_vals)){
+      stop("control_vals must be specified to use at.controls argument.")
+    }
+
+    if(length(at.controls)==1){
+      dyad.mat[,at.controls]<-control_vals
+    }else{
+      for(i in 1:length(at.controls)){
+        dyad.mat[,at.controls][,i]<-control_vals[i]
+      }
+    }
+
+    p<-as.matrix(dyad.mat)%*%theta
+
   }
 
 
@@ -100,7 +137,6 @@ ergm.AME<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE,
     Jac<-numDeriv::jacobian(AME.fun,theta)
     variance.ame<-Jac%*%vc%*%t(Jac)
 
-
     AME.se<-sqrt(variance.ame)
     AME.z<-AME/AME.se
     P.AME<-2*(stats::pnorm(-abs(AME.z)))
@@ -113,8 +149,8 @@ ergm.AME<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE,
     if(return.dydx==TRUE){
       dydx<-sapply(names(theta),function(x)
         (p*(1-p)*theta[var1]))
-        AME<-list(AME,dydx[,var1])
-        names(AME)<-c("AME","dydx")
+        AME<-list(AME,dydx[,var1],Jac)
+        names(AME)<-c("AME","dydx","Jac")
 
     }
 
@@ -180,7 +216,7 @@ ergm.AME<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE,
            AME<-matrix(c(AME,AME.se,AME.z,P.AME),nrow=1,ncol=4)
             colnames(AME)<-c("AME","Delta SE","Z","P")
             rownames(AME)<-inter
-            message("NOTE: Nodematch is an interaction, but it is not a product of the main effects (e.g., inter!=var1*var2). Returning the simple AME for the interaction. Consider respecifying ERGM using nodefactor for main effects or absdiff instead of nodematch to measure homophily.")
+          #  message("NOTE: Nodematch is an interaction, but it is not a product of the main effects (e.g., inter!=var1*var2). Returning the simple AME for the interaction. Consider respecifying ERGM using nodefactor for main effects or absdiff instead of nodematch to measure homophily.")
             marginal.matrix<-signif(marginal.matrix,digits=5)
             AME<-signif(AME,digits=5)
             AME<-list(AME,marginal.matrix)
@@ -283,8 +319,8 @@ ergm.AME<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE,
         AME<-t(as.matrix(marginal.matrix[,-c(5)]))
         rownames(AME)<-rownames(marginal.matrix)
         if(return.dydx==TRUE){
-          AME<-list(AME,dydx.list)
-          names(AME)<-c("Average Marginal effects","Marginal effects")
+          AME<-list(AME,dydx.list,Jac1)
+          names(AME)<-c("Average Marginal effects","Marginal effects","Jac")
         }
         if(return.at.2==TRUE){
           AME<-list(main.results=AME,
@@ -324,8 +360,8 @@ ergm.AME<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE,
         if(return.dydx==FALSE){
         ADC<-list(second.diffs.mat,marginal.matrix[,-c(ncol(marginal.matrix))])
         names(ADC)<-c("Second differences","Average Marginal effects")}else{
-          ADC<-list(second.diffs.mat,marginal.matrix[,-c(ncol(marginal.matrix))],dydx.list)
-          names(ADC)<-c("Second differences","Average Marginal effects","Marginal effects")
+          ADC<-list(second.diffs.mat,marginal.matrix[,-c(ncol(marginal.matrix))],dydx.list,Jac1)
+          names(ADC)<-c("Second differences","Average Marginal effects","Marginal effects","Jac")
         }
         if(return.at.2==TRUE){
           ADC<-list(ADC,at.2)
@@ -345,8 +381,8 @@ ergm.AME<-function(model,var1,var2=NULL,inter=NULL,at.2=NULL, return.dydx=FALSE,
       ADC<-list(summary.output,second.diffs.mat,marginal.matrix[,-c(ncol(marginal.matrix))])
       names(ADC)<-c("Aggregate output","Second differences","Average Marginal effects")}else{
 
-      ADC<-list(summary.output,second.diffs.mat,marginal.matrix[,-c(ncol(marginal.matrix))],dydx.list)
-      names(ADC)<-c("Aggregate output","Second differences","Average Marginal effects","Marginal effects")
+      ADC<-list(summary.output,second.diffs.mat,marginal.matrix[,-c(ncol(marginal.matrix))],dydx.list,Jac1)
+      names(ADC)<-c("Aggregate output","Second differences","Average Marginal effects","Marginal effects","Jac")
       }
       if(return.at.2==TRUE){
       ADC<-list(ADC,at.2)

@@ -13,7 +13,34 @@
 
 
 ergm.mod.mma<-function(restricted.model,full.model,var1, var2, inter,mediator,
-                   at.2=NULL,joint=FALSE,int.eff=FALSE){
+                   at.2=NULL,joint=FALSE,int.eff=FALSE,
+                   at.controls=NULL,control_vals=NULL){
+
+  ##check at.controls appear in both models
+  if(!is.null(at.controls)){
+    if(class(restricted.model)%in%"mlergm"){
+      theta1<-restricted.model$theta
+      theta2<-full.model$theta
+
+    }else{
+      theta1<-btergm::coef(restricted.model)
+      theta2<-btergm::coef(full.model)
+
+    }
+
+    if(!is.null(at.controls)){
+      if(!all(at.controls%in%names(theta1))){
+        stop("Variables specified in any.controls must appear in both models to be used.")
+      }
+      if(!all(at.controls%in%names(theta2))){
+        stop("Variables specified in any.controls must appear in both models to be used.")
+      }
+    }
+
+
+
+  }
+
 
 
   if(joint==FALSE & int.eff==FALSE){
@@ -38,7 +65,6 @@ ergm.mod.mma<-function(restricted.model,full.model,var1, var2, inter,mediator,
         ##matched nodal characteristics are not a product term, so compute marginal effects
         #for var 1 and var 2, then use results to compute marignal effect for interaction
 
-        message("NOTE: when nodematch is specified with continuous main effects, it does not necessarily vary when the main effects change. It can therefore be treated as a main effect. Results returned are for ergm.mma.")
        return(ergm.mma(restricted.model,full.model,mediator=mediator,
                  direct.effect=inter))
 
@@ -47,7 +73,7 @@ ergm.mod.mma<-function(restricted.model,full.model,var1, var2, inter,mediator,
     }
 
 
-  tot.AME<-ergm.AME(restricted.model,var1=var1,var2=var2,inter=inter,at.2=at.2,return.dydx=TRUE,return.at.2 = TRUE)
+  tot.AME<-ergm.AME(restricted.model,var1=var1,var2=var2,inter=inter,at.2=at.2,at.controls=at.controls,control_vals=control_vals,return.dydx=TRUE,return.at.2 = TRUE)
   at.2<-tot.AME[[2]]
   if(length(at.2)>1){
     tot.sec.diff<-tot.AME[[1]]$`Second differences`
@@ -56,7 +82,7 @@ ergm.mod.mma<-function(restricted.model,full.model,var1, var2, inter,mediator,
   tot.AME<-tot.AME[[1]]$`Average Marginal effects`
   t.names<-rownames(tot.AME)
 
-  p.AME<-ergm.AME(full.model,var1=var1,var2=var2,inter=inter,at.2=at.2,return.dydx=TRUE)
+  p.AME<-ergm.AME(full.model,var1=var1,var2=var2,inter=inter,at.2=at.2,at.controls=at.controls,control_vals=control_vals,return.dydx=TRUE)
   if(length(at.2)>1){
     p.sec.diff<-p.AME$`Second differences`
   }

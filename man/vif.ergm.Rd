@@ -1,6 +1,5 @@
 \name{vif.ergm}
 \alias{vif.ergm}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Function to diagnose multicollinearity in ERGM.}
 \description{
@@ -8,10 +7,8 @@ Computes the variance inflation factor from the covariance matrix of the ERGM es
 \usage{
 vif.ergm(my.ergm)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{my.ergm}{an ergm object.
-%%     ~~Describe \code{x} here~~
 }
 }
 \details{
@@ -72,8 +69,6 @@ tol<-1/(vif.ergm(my.ergm2))
 r.sq<-1-tol
 
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~ergm }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~networks }% __ONLY ONE__ keyword per line
+\keyword{ ~ergm }
+\keyword{ ~networks }
 \keyword{ ~collinearity}
