@@ -32,22 +32,55 @@ ergm.AME<-function(model,
                    return.dydx=FALSE,
                    return.at.2=FALSE){
 
+  if(class(model)%in%"btergm"){
+    out<-ergm.AME_boot(model=model,
+                       var1=var1,
+                       var2=var2,
+                       inter=inter,
+                       at.2=at.2,
+                       at.controls=at.controls,
+                       control_vals=control_vals,
+                       return.dydx=return.dydx,
+                       return.at.2=return.at.2)
+    return(out)
+  }
 
-  ##get edge probabilities
-  dyad.mat<-edge.prob2(model)[,-c(1)]
-  dyad.full.mat<-dyad.mat
-  p<-dyad.mat$probability
-  start.drops<-ncol(dyad.mat)-5
-  dyad.mat<-dyad.mat[,-c(start.drops:ncol(dyad.mat))]
+  if(is.valued(model)){
+    out<-ergm.AME_count(model=model,
+                        var1=var1,
+                        var2=var2,
+                        inter=inter,
+                        at.2=at.2,
+                        at.controls=at.controls,
+                        control_vals=control_vals,
+                        return.dydx=return.dydx,
+                        return.at.2=return.at.2)
 
+    return(out)
+  }
 
+  if(class(model$network)[1]%in%"mtergm"){
+    dyad.mat<-edge.prob2(model)[,-c(1)]
+    dyad.full.mat<-dyad.mat
+    p<-dyad.mat$probability
+    start.drops<-ncol(dyad.mat)-5
+    dyad.mat<-dyad.mat[,-c(start.drops:ncol(dyad.mat))]
 
-  if(class(model)%in%"mtergm"){
     vc <- stats::vcov(model@ergm)
     vc<-vc[!rownames(vc)%in%"edgecov.offsmat",!colnames(vc)%in%"edgecov.offsmat"]
+
+
   }else{
-  vc <- stats::vcov(model)
+
+    dyad.mat<-ergmMPLE(btergm::getformula(model))
+    dyad.mat<-dyad.mat$predictor
+    theta<-coef(model)
+    p<-1/(1+exp(-(dyad.mat%*%theta)))
+    vc <- stats::vcov(model)
+
   }
+
+
   if(class(model)%in%"mlergm"){
     theta<-model$theta
     vc<-solve(vc) #invert the fisher matrix
@@ -69,7 +102,10 @@ ergm.AME<-function(model,
       for(i in 1:length(model$etamap$curved)){
         curved.term[i]<-model$etamap$curved[[i]]$from[2]
       }
-      theta<-theta[-c(curved.term)]
+      #theta<-theta[-c(curved.term)]
+      theta<-ergm::ergm.eta(theta,model@ergm$etamap)
+      names(theta)<-colnames(dyad.mat[,-c(1)])
+
     }
 
   }else{
@@ -78,7 +114,9 @@ ergm.AME<-function(model,
       for(i in 1:length(model$etamap$curved)){
         curved.term[i]<-model$etamap$curved[[i]]$from[2]
       }
-      theta<-theta[-c(curved.term)]
+     # theta<-theta[-c(curved.term)]
+      theta<-ergm::ergm.eta(theta,model$etamap)
+      names(theta)<-colnames(dyad.mat[,-c(1)])
     }
   }
 
@@ -123,9 +161,16 @@ ergm.AME<-function(model,
   if(length(at.2)>10){
     warning("More than 10 values of at.2 exist for the moderating variable. It may take awhile to compute average marginal effects. Consider specifying fewer values of at.2.")
   }
+  if(class(model)%in%"mlergm"){
+    theta<-model$theta
+    vc<-solve(vc) #invert the fisher matrix
+  }else{
+    theta<-btergm::coef(model)
+  }
 
       ##marginal effects with no interaction
     if(is.null(var2)){
+
 
       AME.fun<-function(theta){
 
@@ -254,6 +299,15 @@ ergm.AME<-function(model,
         dyad.submat<-dyad.mat
         dyad.submat[,var2]<-at.2[i]
 
+        if(class(model)%in%"mtergm"){
+            if(ergm::is.curved(model@ergm)){
+              theta<-ergm::ergm.eta(theta,model@ergm$etamap)
+            }
+        }else{
+          if(ergm::is.curved(model)){
+            theta<-ergm::ergm.eta(theta,model$etamap)
+          }
+        }
           #marginal effects for absolute differences
         if(!is.na(pmatch("absdiff",inter))){
           dyad.submat[,inter]<-abs(dyad.submat[,var1]-dyad.submat[,var2])
@@ -262,6 +316,13 @@ ergm.AME<-function(model,
             dyad.submat<-dyad.submat[,!colnames(dyad.submat)%in%var2]
           }
            p<-1/(1+exp(-(apply(dyad.submat,1,function(x) t(x)%*%theta))))
+
+           if(class(model)%in%"mlergm"){
+             theta<-model$theta
+             vc<-solve(vc) #invert the fisher matrix
+           }else{
+             theta<-btergm::coef(model)
+           }
 
           at.diffs<-abs(at.2[i]-mean(dyad.mat[,var1]))
 
@@ -284,6 +345,12 @@ ergm.AME<-function(model,
           }
             p<-1/(1+exp(-(apply(dyad.submat,1,function(x) t(x)%*%theta))))
 
+            if(class(model)%in%"mlergm"){
+              theta<-model$theta
+              vc<-solve(vc) #invert the fisher matrix
+            }else{
+              theta<-btergm::coef(model)
+            }
 
          AME.fun<-function(theta){
 

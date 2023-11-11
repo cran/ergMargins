@@ -4,3 +4,11 @@ export(ergm.AME)
 export(ergm.MEM)
 export(ergm.mma)
 export(vif.ergm)
+import(stats)
+import(parallel)
+import(ergm)
+import(network)
+import(sna)
+import(sampling)
+
+	

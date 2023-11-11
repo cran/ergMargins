@@ -4,7 +4,7 @@
 Function to compute marginal effects at means in ERGM.
 }
 \description{
-ERGM function to compute marginal effects at means for main effects or at various levels of a moderator. Also provides tests of significance for second differences for interaction terms. Syntax similar to margins by Thomas Leeper and Stata margins command. See ergm.AME to compute average marginal effect.
+ERGM function to compute marginal effects at means for main effects or at various levels of a moderator. Also provides tests of significance for second differences for interaction terms. Currently accepts \code{ergm}, \code{btergm}, \code{mtergm}, \code{ergm.count}, \code{mlergm}, and \code{ergm.multi} objects. See ergm.AME to compute average marginal effect.
 }
 \usage{
 ergm.MEM(model,var1,var2=NULL,inter=NULL,at.2=NULL,

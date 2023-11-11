@@ -4,7 +4,7 @@
 Function to conduct marginal effects mediation analysis in ERGM.
 }
 \description{
-ergm.mma is a function to conduct mediation analysis in ERGM using marginal effects. It computes the total, direct, and indirect average marginal effects for two nested ERGMs fit to the same data. Can be used with discrete or continuous mediators and for multiple mediator analyses.}
+ergm.mma is a function to conduct mediation analysis in ERGM using marginal effects. It computes the total, direct, and indirect average marginal effects for two nested ERGMs fit to the same data. Can be used with discrete or continuous mediators and for multiple mediator analyses. Currently accepts \code{ergm}, \code{btergm}, \code{mtergm}, \code{ergm.count}, \code{mlergm}, and \code{ergm.multi} objects.}
 \usage{
 ergm.mma(restricted.model,full.model,direct.effect,mediator,
                   at.controls=NULL, control_vals=NULL,ME="AME")

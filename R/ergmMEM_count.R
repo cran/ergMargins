@@ -20,7 +20,7 @@
 #standard errors are computed using the delta method.
 
 
-ergm.MEM<-function(model,
+ergm.MEM_count<-function(model,
                    var1,
                    var2=NULL,
                    inter=NULL,
@@ -29,102 +29,51 @@ ergm.MEM<-function(model,
                    control_vals=NULL,
                    return.dydx=FALSE){
 
-  if(class(model)%in%"btergm"){
-    out<-ergm.MEM_boot(model=model,
-                       var1=var1,
-                       var2=var2,
-                       inter=inter,
-                       at.2=at.2,
-                       at.controls=at.controls,
-                       control_vals=control_vals,
-                       return.dydx=return.dydx)
-    return(out)
+  reference<-model$reference
+
+  if(grepl("Binomial", as.character(reference)[2],fixed = TRUE)){
+    ref<-"binomial"
+  }
+  if("Poisson"%in%as.character(reference)){
+    ref<-"poisson"
+  }
+  if("Geometric"%in%as.character(reference)){
+    ref<-"geometric"
+  }
+  if("Uniform"%in%as.character(reference)){
+    ref<-"uniform"
   }
 
-  if(is.valued(model)){
-    out<-ergm.MEM_count(model=model,
-                        var1=var1,
-                        var2=var2,
-                        inter=inter,
-                        at.2=at.2,
-                        at.controls=at.controls,
-                        control_vals=control_vals,
-                        return.dydx=return.dydx)
+  #get sufficient statistics
+  max_y<-max(as.sociomatrix(model$network,model$network$gal$ergm$response[1]))
+  suff_stats<-ergmCntPrep(formula=model$formula,
+                          nw=model$network,
+                          response=model$network$gal$ergm$response[1],
+                          reference=ref,
+                          max.count = max_y)
 
-    return(out)
+
+  out<-lapply(suff_stats$cs,as.data.frame)
+  for(i in 1:length(out)){
+    out[[i]]$m<-nrow(out[[i]])
   }
+  dyad.mat<-dplyr::bind_rows(out)
 
-  if(class(model$network)[1]%in%"mtergm"){
-    dyad.mat<-edge.prob2(model)[,-c(1)]
-    dyad.full.mat<-dyad.mat
-    start.drops<-ncol(dyad.mat)-5
-    dyad.mat<-dyad.mat[,-c(start.drops:ncol(dyad.mat))]
-
-    vc <- stats::vcov(model@ergm)
-    vc<-vc[!rownames(vc)%in%"edgecov.offsmat",!colnames(vc)%in%"edgecov.offsmat"]
+  #get predicted probs then do m x p to get predicted counts
+  theta<-btergm::coef(model)
+  m<-dyad.mat$m
+  dyad.mat<-dyad.mat[,-ncol(dyad.mat)]
+  vc<-stats::vcov(model)
 
 
-  }else{
 
-    dyad.mat<-ergmMPLE(btergm::getformula(model))
-    dyad.mat<-dyad.mat$predictor
-    theta<-coef(model)
-    vc <- stats::vcov(model)
-
-  }
-
-  if(class(model)%in%"mlergm"){
-    theta<-model$theta
-    vc<-solve(vc)
-  }else{
-    theta<-btergm::coef(model)
-  }
-  #handle mlergm objects
-  if("mlergm"%in%class(model)){
-    class(model)<-"ergm"
-  }
-
-  ##handle curved ergms by removing decay parameter
-    #note that the micro-level change statistics are already properly weighted,
-    #so decay term is not needed for predictions
-  ##handle decay term in curved ergms
-  if(class(model)%in%"mtergm" | class(model)%in%"btergm"){
-
-    if(ergm::is.curved(model@ergm)){
-      curved.term<-vector(length=length(model$etamap$curved))
-      for(i in 1:length(model$etamap$curved)){
-        curved.term[i]<-model$etamap$curved[[i]]$from[2]
-      }
-    #  theta<-theta[-c(curved.term)]
-      theta<-ergm::ergm.eta(theta,model@ergm$etamap)
-      names(theta)<-colnames(dyad.mat[,-c(1)])
-
-    }
-
-  }else{
-    if(ergm::is.curved(model)){
-      curved.term<-vector(length=length(model$etamap$curved))
-      for(i in 1:length(model$etamap$curved)){
-        curved.term[i]<-model$etamap$curved[[i]]$from[2]
-      }
-      #theta<-theta[-c(curved.term)]
-      theta<-ergm::ergm.eta(theta,model$etamap)
-      names(theta)<-colnames(dyad.mat[,-c(1)])
-
-    }
-  }
-
-  if(any(names(theta)!=colnames(dyad.mat))){
-    colnames(dyad.mat)<-names(theta) #make sure names align
-  }
-
-
-  ###incorporate control vals
+  ##assign fixed values for controls when specified
 
   if(!is.null(at.controls)){
     if(is.null(control_vals)){
       stop("control_vals must be specified to use at.controls argument.")
     }
+
     if(length(at.controls)==1){
       dyad.mat[,at.controls]<-control_vals
     }else{
@@ -132,13 +81,23 @@ ergm.MEM<-function(model,
         dyad.mat[,at.controls][,i]<-control_vals[i]
       }
     }
+
   }
 
 
+
+  if(length(theta)>20){
+    message("There are more than 20 parameters in the model. Variance estimates for marginal effects may take a moment to compute.")
+  }
+
+  ##identify unique values of at.2--not used if var2==NULL
+  if(is.null(at.2)){
+    at.2<-sort(unique(dyad.mat[,var2]))
+  }
+
   #create marginal effects
   dyad.means<-colMeans(dyad.mat,na.rm=TRUE)
-
-  p<-1/(1+exp(-dyad.means%*%theta))
+  p<-mean(m)*(1/(1+exp(-dyad.means%*%theta)))
 
 
   ##identify unique values of at.2--not used if var2==NULL
@@ -146,12 +105,6 @@ ergm.MEM<-function(model,
     at.2<-sort(unique(dyad.mat[,var2]))
   }
 
-  if(class(model)%in%"mlergm"){
-    theta<-model$theta
-    vc<-solve(vc) #invert the fisher matrix
-  }else{
-    theta<-btergm::coef(model)
-  }
 
   ##marginal effects with no interaction
   if(is.null(var2)){
@@ -159,7 +112,7 @@ ergm.MEM<-function(model,
     MEM.fun<-function(theta){
 
       ME.ergm<-sapply(names(theta),function(x)
-        (p*(1-p)*theta[var1]))
+        (p*theta[var1]))
       mean(ME.ergm,na.rm = TRUE)}
 
     MEM<-MEM.fun(theta)
@@ -192,72 +145,72 @@ ergm.MEM<-function(model,
     if(!is.na(pmatch("nodematch",inter))){
       if(!is.na(pmatch("nodecov",var1)) | !is.na(pmatch("nodeicov",var1)) |
          !is.na(pmatch("nodeocov",var1))){          ##matched nodal characteristics are not a product term, so compute marginal effects
-          #for var 1 and var 2, then use results to compute marignal effect for interaction
+        #for var 1 and var 2, then use results to compute marignal effect for interaction
 
-          MEM.fun<-function(theta){
+        MEM.fun<-function(theta){
 
-            ME.ergm<-sapply(names(theta),function(x)
-              (p*(1-p)*theta[var1]))
-            mean(ME.ergm,na.rm = TRUE)}
+          ME.ergm<-sapply(names(theta),function(x)
+            (p*theta[var1]))
+          mean(ME.ergm,na.rm = TRUE)}
 
-          MEM1<-MEM.fun(theta)
-          Jac<-numDeriv::jacobian(MEM.fun,theta)
-          variance.ame1<-Jac%*%vc%*%t(Jac)
-          MEM1.se<-sqrt(variance.ame1)
-          MEM1.z<-MEM1/MEM1.se
-          P.MEM1<-2*(stats::pnorm(-abs(MEM1.z)))
+        MEM1<-MEM.fun(theta)
+        Jac<-numDeriv::jacobian(MEM.fun,theta)
+        variance.ame1<-Jac%*%vc%*%t(Jac)
+        MEM1.se<-sqrt(variance.ame1)
+        MEM1.z<-MEM1/MEM1.se
+        P.MEM1<-2*(stats::pnorm(-abs(MEM1.z)))
 
-          MEM.fun<-function(theta){
+        MEM.fun<-function(theta){
 
-            ME.ergm<-sapply(names(theta),function(x)
-              (p*(1-p)*theta[var2]))
-            mean(ME.ergm,na.rm = TRUE)}
+          ME.ergm<-sapply(names(theta),function(x)
+            (p*theta[var2]))
+          mean(ME.ergm,na.rm = TRUE)}
 
-          MEM2<-MEM.fun(theta)
-          Jac<-numDeriv::jacobian(MEM.fun,theta)
-          variance.ame2<-Jac%*%vc%*%t(Jac)
-          MEM2.se<-sqrt(variance.ame2)
-          MEM2.z<-MEM2/MEM2.se
-          P.MEM2<-2*(stats::pnorm(-abs(MEM2.z)))
+        MEM2<-MEM.fun(theta)
+        Jac<-numDeriv::jacobian(MEM.fun,theta)
+        variance.ame2<-Jac%*%vc%*%t(Jac)
+        MEM2.se<-sqrt(variance.ame2)
+        MEM2.z<-MEM2/MEM2.se
+        P.MEM2<-2*(stats::pnorm(-abs(MEM2.z)))
 
-          MEM<-matrix(c(MEM1,MEM1.se,MEM1.z,P.MEM1,
-                        MEM2,MEM2.se,MEM2.z,P.MEM2),nrow=2,ncol=4,byrow=TRUE)
-          colnames(MEM)<-c("MEM","Delta SE","Z","P")
-          rownames(MEM)<-c(var1,var2)
-          marginal.matrix<-MEM
+        MEM<-matrix(c(MEM1,MEM1.se,MEM1.z,P.MEM1,
+                      MEM2,MEM2.se,MEM2.z,P.MEM2),nrow=2,ncol=4,byrow=TRUE)
+        colnames(MEM)<-c("MEM","Delta SE","Z","P")
+        rownames(MEM)<-c(var1,var2)
+        marginal.matrix<-MEM
 
 
-          ##compute marginal effect
-          MEM.fun<-function(theta){
+        ##compute marginal effect
+        MEM.fun<-function(theta){
 
-            ME.ergm<-sapply(names(theta),function(x)
-              (p*(1-p)*theta[inter]))
-            mean(ME.ergm,na.rm = TRUE)}
+          ME.ergm<-sapply(names(theta),function(x)
+            (p*theta[inter]))
+          mean(ME.ergm,na.rm = TRUE)}
 
-          MEM<-MEM.fun(theta)
-          Jac<-numDeriv::jacobian(MEM.fun,theta)
-          variance.inter<-Jac%*%vc%*%t(Jac)
-          MEM.se<-sqrt(variance.inter)
-          MEM.z<-MEM/MEM.se
-          P.MEM<-2*(stats::pnorm(-abs(MEM.z)))
+        MEM<-MEM.fun(theta)
+        Jac<-numDeriv::jacobian(MEM.fun,theta)
+        variance.inter<-Jac%*%vc%*%t(Jac)
+        MEM.se<-sqrt(variance.inter)
+        MEM.z<-MEM/MEM.se
+        P.MEM<-2*(stats::pnorm(-abs(MEM.z)))
 
-          MEM<-matrix(c(MEM,MEM.se,MEM.z,P.MEM),nrow=1,ncol=4)
-          colnames(MEM)<-c("MEM","Delta SE","Z","P")
-          rownames(MEM)<-inter
-          message("NOTE: Nodematch is an interaction, but it is not a product of the main effects (e.g., inter!=var1*var2). Returning the simple MEM for the interaction. Consider respecifying ERGM using nodefactor for main effects or absdiff instead of nodematch to measure homophily.")
-          marginal.matrix<-signif(marginal.matrix,digits=5)
-          MEM<-signif(MEM,digits=5)
-          MEM<-list(MEM,marginal.matrix)
-          names(MEM)<-c("Marginal effect for nodematch","Marginal effects for nodal covariates")
+        MEM<-matrix(c(MEM,MEM.se,MEM.z,P.MEM),nrow=1,ncol=4)
+        colnames(MEM)<-c("MEM","Delta SE","Z","P")
+        rownames(MEM)<-inter
+        message("NOTE: Nodematch is an interaction, but it is not a product of the main effects (e.g., inter!=var1*var2). Returning the simple MEM for the interaction. Consider respecifying ERGM using nodefactor for main effects or absdiff instead of nodematch to measure homophily.")
+        marginal.matrix<-signif(marginal.matrix,digits=5)
+        MEM<-signif(MEM,digits=5)
+        MEM<-list(MEM,marginal.matrix)
+        names(MEM)<-c("Marginal effect for nodematch","Marginal effects for nodal covariates")
 
-          if(return.dydx==TRUE){
-            MEM<-list(MEM,Jac)
-            names(MEM)<-c("MEM","Jac")
+        if(return.dydx==TRUE){
+          MEM<-list(MEM,Jac)
+          names(MEM)<-c("MEM","Jac")
 
-          }
-
-          return(MEM)
         }
+
+        return(MEM)
+      }
 
     }
 
@@ -270,7 +223,7 @@ ergm.MEM<-function(model,
       at.2<-c(0,1)
     }
 
-      #check whether self interaction
+    #check whether self interaction
     if(var1==var2){
       self.int<-TRUE
       var2<-paste(var1,".mod",sep="")
@@ -306,7 +259,7 @@ ergm.MEM<-function(model,
           dyad.submeans<-dyad.submeans[!names(dyad.submeans)%in%var2]
         }
 
-        p<-1/(1+exp(-(dyad.submeans%*%theta)))
+        p<-mean(m)*(1/(1+exp(-(dyad.submeans%*%theta))))
 
         at.diffs<-abs(at.2[i]-dyad.submeans[var1])
         if(class(model)%in%"mlergm"){
@@ -319,7 +272,7 @@ ergm.MEM<-function(model,
         MEM.fun<-function(theta){
 
           ME.ergm<-sapply(names(theta),function(x)
-            (p*(1-p)*(theta[var1]+(theta[inter]*at.diffs))))
+            (p*(theta[var1]+(theta[inter]*at.diffs))))
           mean(ME.ergm,na.rm = TRUE)}
 
       }else{
@@ -330,7 +283,7 @@ ergm.MEM<-function(model,
           dyad.submeans<-dyad.submeans[!names(dyad.submeans)%in%var2]
         }
 
-        p<-1/(1+exp(-(dyad.submeans%*%theta)))
+        p<-mean(m)*(1/(1+exp(-(dyad.submeans%*%theta))))
         if(class(model)%in%"mlergm"){
           theta<-model$theta
           vc<-solve(vc) #invert the fisher matrix
@@ -341,7 +294,7 @@ ergm.MEM<-function(model,
         MEM.fun<-function(theta){
 
           ME.ergm<-sapply(names(theta),function(x)
-            (p*(1-p)*(theta[var1]+(theta[inter]*at.2[[i]]))))
+            (p*(theta[var1]+(theta[inter]*at.2[[i]]))))
           mean(ME.ergm,na.rm = TRUE)}
       }
 
@@ -414,8 +367,8 @@ ergm.MEM<-function(model,
 
       }else{
 
-         DCR<-list(second.diffs.mat,marginal.matrix[,-c(ncol(marginal.matrix))])
-         names(DCR)<-c("Second differences","Marginal effects at means")
+        DCR<-list(second.diffs.mat,marginal.matrix[,-c(ncol(marginal.matrix))])
+        names(DCR)<-c("Second differences","Marginal effects at means")
       }
       return(DCR)
     }else{

@@ -21,6 +21,10 @@ setMethod("getformula", signature = className("mlergm", "mlergm"),
 
 edge.prob2<-function (model, verbose = FALSE)
 {
+  if(class(model)%in%"btergm"){
+    out<-btergm::edgeprob(model)
+    return(out)
+  }
   object<-model
   if (class(object) %in% c("ergm","mlergm")) {
     tergm <- FALSE
@@ -55,6 +59,12 @@ edge.prob2<-function (model, verbose = FALSE)
   }else{
     coefs <- btergm::coef(object)
   }
+  if(ergm::is.curved(object)){
+    coefs<-ergm::ergm.eta(coefs,object$etamap)
+  }
+
+
+
   if (verbose == TRUE) {
     message("Creating data frame with predictors...")
   }
@@ -107,14 +117,15 @@ edge.prob2<-function (model, verbose = FALSE)
   if("mlergm"%in%class(object)){
     class(object)<-"ergm"
   }
-  if(class(object)%in%"mtergm" | class(object)%in%"btergm"){
+  if(class(object)%in%"mtergm"){
 
     if(ergm::is.curved(object@ergm)){
       curved.term<-vector(length=length(object$etamap$curved))
       for(i in 1:length(object$etamap$curved)){
         curved.term[i]<-object$etamap$curved[[i]]$from[2]
       }
-      cbcoef<-cbcoef[-c(curved.term)]
+     # cbcoef<-cbcoef[-c(curved.term)]
+      cbcoef<-ergm::ergm.eta(cbcoef,object$etamap)
     }
 
   }else{
@@ -123,7 +134,9 @@ edge.prob2<-function (model, verbose = FALSE)
           for(i in 1:length(object$etamap$curved)){
           curved.term[i]<-object$etamap$curved[[i]]$from[2]
           }
-          cbcoef<-cbcoef[-c(curved.term)]
+         # cbcoef<-cbcoef[-c(curved.term)]
+          cbcoef<-ergm::ergm.eta(cbcoef,object$etamap)
+
         }
       }
   lp <- apply(chgstat, 1, function(x) t(x) %*% cbcoef)

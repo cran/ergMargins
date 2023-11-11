@@ -139,9 +139,9 @@ ergm.mod.mma<-function(restricted.model,full.model,var1, var2, inter,mediator,
     if(nrow(tot.dydx[[i]])!=nrow(p.dydx[[i]])){
 
       if(nrow(tot.dydx[[i]])<nrow(p.dydx[[i]])){
-        p.dydx[[i]]<-p.dydx[[i]][1:nrow(tot.dydx[[i]])]
+        p.dydx[[i]]<-p.dydx[[i]][1:nrow(tot.dydx[[i]]),]
       }else{
-        tot.dydx[[i]]<-tot.dydx[[i]][1:nrow(p.dydx[[i]])]
+        tot.dydx[[i]]<-tot.dydx[[i]][1:nrow(p.dydx[[i]]),]
       }
 
     }
