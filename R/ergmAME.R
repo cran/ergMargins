@@ -72,10 +72,9 @@ ergm.AME<-function(model,
 
   }else{
 
-    dyad.mat<-ergmMPLE(btergm::getformula(model))
-    dyad.mat<-dyad.mat$predictor
+    dyad.mat<-ergmMPLE(btergm::getformula(model),output="dyadlist")
+    dyad.mat<-dyad.mat$predictor[,-c(1:2)]
     theta<-coef(model)
-    p<-1/(1+exp(-(dyad.mat%*%theta)))
     vc <- stats::vcov(model)
 
   }
@@ -116,7 +115,7 @@ ergm.AME<-function(model,
       }
      # theta<-theta[-c(curved.term)]
       theta<-ergm::ergm.eta(theta,model$etamap)
-      names(theta)<-colnames(dyad.mat[,-c(1)])
+      names(theta)<-colnames(dyad.mat)
     }
   }
 
@@ -140,9 +139,10 @@ ergm.AME<-function(model,
       }
     }
 
-    p<-as.matrix(dyad.mat)%*%theta
 
   }
+
+  p<-1/(1+exp(-(dyad.mat%*%theta)))
 
 
   if(nrow(dyad.mat)>1e06){
@@ -168,8 +168,11 @@ ergm.AME<-function(model,
     theta<-btergm::coef(model)
   }
 
+
+
+
       ##marginal effects with no interaction
-    if(is.null(var2)){
+ if(is.null(var2)){
 
 
       AME.fun<-function(theta){
@@ -283,7 +286,8 @@ ergm.AME<-function(model,
       if(var1==var2){
         self.int<-TRUE
         var2<-paste(var1,".mod")
-        dyad.mat[,var2]<-dyad.mat[,var1]
+        dyad.mat<-cbind(dyad.mat,dyad.mat[,var1])
+        colnames(dyad.mat)[ncol(dyad.mat)]<-var2
       }else{
         self.int<-FALSE
       }

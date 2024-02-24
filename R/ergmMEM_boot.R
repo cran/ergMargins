@@ -60,7 +60,6 @@ ergm.MEM_boot<-function(model,
       }
     }
 
-    p<-as.matrix(dyad.mat)%*%theta
 
   }
 

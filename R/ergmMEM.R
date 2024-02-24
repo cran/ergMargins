@@ -66,8 +66,8 @@ ergm.MEM<-function(model,
 
   }else{
 
-    dyad.mat<-ergmMPLE(btergm::getformula(model))
-    dyad.mat<-dyad.mat$predictor
+    dyad.mat<-ergmMPLE(btergm::getformula(model),output="dyadlist")
+    dyad.mat<-dyad.mat$predictor[,-c(1:2)]
     theta<-coef(model)
     vc <- stats::vcov(model)
 
@@ -109,7 +109,7 @@ ergm.MEM<-function(model,
       }
       #theta<-theta[-c(curved.term)]
       theta<-ergm::ergm.eta(theta,model$etamap)
-      names(theta)<-colnames(dyad.mat[,-c(1)])
+      names(theta)<-colnames(dyad.mat)
 
     }
   }

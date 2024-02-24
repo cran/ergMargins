@@ -61,7 +61,7 @@ ergm.AME_boot<-function(model,
       }
     }
 
-    p<-as.matrix(dyad.mat)%*%theta
+    p<-1/(1+exp(-as.matrix(dyad.mat)%*%theta))
 
   }
 

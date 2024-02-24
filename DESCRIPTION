@@ -1,7 +1,7 @@
 Package: ergMargins
 Type: Package
 Title: Process Analysis for Exponential Random Graph Models
-Version: 1.1
+Version: 1.2
 Authors@R: person("Scott", "Duxbury",email="duxbury@email.unc.edu", role=c("aut", "cre", "cph"))
 Maintainer: Scott Duxbury <duxbury@email.unc.edu>
 Description: Calculates marginal effects and conducts process analysis in exponential family random graph models (ERGM).
@@ -23,7 +23,7 @@ Imports: numDeriv, stats, ergm, Matrix, btergm, parallel, dplyr, sna,
 Suggests: MASS, knitr, rmarkdown, methods, statnet.common, Rcpp,
         ergm.count
 NeedsCompilation: no
-Packaged: 2023-11-11 20:49:41 UTC; Scott D
+Packaged: 2024-02-24 03:15:04 UTC; Scott D
 Author: Scott Duxbury [aut, cre, cph]
 Repository: CRAN
-Date/Publication: 2023-11-11 23:23:47 UTC
+Date/Publication: 2024-02-24 05:00:07 UTC
