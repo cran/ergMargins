@@ -9,15 +9,16 @@
 vif.ergm<-function(my.ergm){
 
 
-  if(class(my.ergm)%in%"btergm"){
+  if(class(my.ergm)[1]%in%"btergm"){
     data_mat<-my.ergm@effects
     corr5<-stats::cor(data_mat[!rownames(data_mat)%in%"edges",
                         !colnames(data_mat)%in%"edges"]) ##omit edges term
+
     beta<-btergm::coef(my.ergm)
   }else{
 
       #get correlation matrix
-    if(class(my.ergm)%in%"mlergm"){
+    if(class(my.ergm)[1]%in%"mlergm"){
       cor.mat<-stats::cov2cor(solve(my.ergm$information_matrix))
       beta<-my.ergm$theta
 
@@ -29,8 +30,8 @@ vif.ergm<-function(my.ergm){
 
     #omit edges, assign names to matrix
     rownames(cor.mat)<-colnames(cor.mat)<-names(beta)
-    corr5<-cor.mat[!rownames(cor.mat)%in%"edges",
-                   !colnames(cor.mat)%in%"edges"]
+    corr5<-cor.mat[!rownames(cor.mat)%in%c("edges","Form~edges","Diss~edges","Persist~edges","Cross~edges","Change~edges"),
+                   !colnames(cor.mat)%in%c("edges","Form~edges","Diss~edges","Persist~edges","Cross~edges","Change~edges")]
   }
 
   corr5<-corr5[!is.na(corr5[1:nrow(corr5)]),]
@@ -47,9 +48,9 @@ vif.ergm<-function(my.ergm){
     VIFS[1,i]<-1/(1-Rsq)
   }
 
-  colnames(VIFS)<-names(beta[!names(beta)%in%"edges"])
+  colnames(VIFS)<-names(beta[!names(beta)%in%c("edges","Form~edges","Diss~edges","Persist~edges","Cross~edges","Change~edges")])
 
-  if(class(my.ergm)%in%"btergm"){
+  if(class(my.ergm)[1]%in%"btergm"){
 
     warning("VIFS for bootstrap TERGM based on model matrix, not the covariance matrix of the estimator. Benchmarks used for MCMC ML estimation may not apply.")
 

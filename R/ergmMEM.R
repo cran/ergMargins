@@ -29,7 +29,7 @@ ergm.MEM<-function(model,
                    control_vals=NULL,
                    return.dydx=FALSE){
 
-  if(class(model)%in%"btergm"){
+  if(class(model)[1]%in%"btergm"){
     out<-ergm.MEM_boot(model=model,
                        var1=var1,
                        var2=var2,
@@ -41,9 +41,10 @@ ergm.MEM<-function(model,
     return(out)
   }
 
-  if(is.valued(model)){
-    out<-ergm.MEM_count(model=model,
-                        var1=var1,
+  if(!class(model)[1]%in%"mtergm"){
+    if(is.valued(model)){
+      out<-ergm.MEM_count(model=model,
+                         var1=var1,
                         var2=var2,
                         inter=inter,
                         at.2=at.2,
@@ -52,9 +53,10 @@ ergm.MEM<-function(model,
                         return.dydx=return.dydx)
 
     return(out)
+    }
   }
 
-  if(class(model$network)[1]%in%"mtergm"){
+  if(class(model)[1]%in%"mtergm"){
     dyad.mat<-edge.prob2(model)[,-c(1)]
     dyad.full.mat<-dyad.mat
     start.drops<-ncol(dyad.mat)-5
@@ -65,15 +67,14 @@ ergm.MEM<-function(model,
 
 
   }else{
-
-    dyad.mat<-ergmMPLE(btergm::getformula(model),output="dyadlist")
+    dyad.mat<-ergmMPLE(model$formula,output="dyadlist",basis=model$network)
     dyad.mat<-dyad.mat$predictor[,-c(1:2)]
     theta<-coef(model)
     vc <- stats::vcov(model)
 
   }
 
-  if(class(model)%in%"mlergm"){
+  if(class(model)[1]%in%"mlergm"){
     theta<-model$theta
     vc<-solve(vc)
   }else{
@@ -88,7 +89,7 @@ ergm.MEM<-function(model,
     #note that the micro-level change statistics are already properly weighted,
     #so decay term is not needed for predictions
   ##handle decay term in curved ergms
-  if(class(model)%in%"mtergm" | class(model)%in%"btergm"){
+  if(class(model)[1]%in%"mtergm" | class(model)[1]%in%"btergm"){
 
     if(ergm::is.curved(model@ergm)){
       curved.term<-vector(length=length(model$etamap$curved))
@@ -134,24 +135,36 @@ ergm.MEM<-function(model,
     }
   }
 
+  #handle offset
+  offset_ind<-pmatch("offset",names(theta))
+  if(!is.na(offset_ind)){
+    dyad.mat<-dyad.mat[,-offset_ind]
+    theta<-theta[-offset_ind]
+    vc<-vc[-offset_ind,-offset_ind]
+  }
+
 
   #create marginal effects
   dyad.means<-colMeans(dyad.mat,na.rm=TRUE)
 
   p<-1/(1+exp(-dyad.means%*%theta))
 
+  if (class(model)[1] %in% "mlergm") {
+    theta <- model$theta
+    vc <- solve(vc)
+  }
+  else {
+    theta <- btergm::coef(model)
+    if(!is.na(offset_ind)){
+      theta<-theta[-offset_ind]
+    }
+  }
 
   ##identify unique values of at.2--not used if var2==NULL
   if(is.null(at.2)){
     at.2<-sort(unique(dyad.mat[,var2]))
   }
 
-  if(class(model)%in%"mlergm"){
-    theta<-model$theta
-    vc<-solve(vc) #invert the fisher matrix
-  }else{
-    theta<-btergm::coef(model)
-  }
 
   ##marginal effects with no interaction
   if(is.null(var2)){
@@ -289,7 +302,7 @@ ergm.MEM<-function(model,
 
       dyad.submeans<-dyad.means
       dyad.submeans[var2]<-at.2[i]
-      if(class(model)%in%"mtergm"){
+      if(class(model)[1]%in%"mtergm"){
         if(ergm::is.curved(model@ergm)){
           theta<-ergm::ergm.eta(theta,model@ergm$etamap)
         }
@@ -309,7 +322,7 @@ ergm.MEM<-function(model,
         p<-1/(1+exp(-(dyad.submeans%*%theta)))
 
         at.diffs<-abs(at.2[i]-dyad.submeans[var1])
-        if(class(model)%in%"mlergm"){
+        if(class(model)[1]%in%"mlergm"){
           theta<-model$theta
           vc<-solve(vc) #invert the fisher matrix
         }else{
@@ -331,7 +344,7 @@ ergm.MEM<-function(model,
         }
 
         p<-1/(1+exp(-(dyad.submeans%*%theta)))
-        if(class(model)%in%"mlergm"){
+        if(class(model)[1]%in%"mlergm"){
           theta<-model$theta
           vc<-solve(vc) #invert the fisher matrix
         }else{
