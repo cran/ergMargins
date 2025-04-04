@@ -109,12 +109,19 @@ ergm.MEM_count<-function(model,
   ##marginal effects with no interaction
   if(is.null(var2)){
 
+    if(length(var1)>1){
+      MEM.fun<-function(theta){
+
+        ME.ergm<-sapply(names(theta),function(x)
+          (p*sum(theta[var1])))
+        mean(ME.ergm,na.rm = TRUE)}
+    }else{
     MEM.fun<-function(theta){
 
       ME.ergm<-sapply(names(theta),function(x)
         (p*theta[var1]))
       mean(ME.ergm,na.rm = TRUE)}
-
+    }
     MEM<-MEM.fun(theta)
     Jac<-numDeriv::jacobian(MEM.fun,theta)
     variance.mem<-Jac%*%vc%*%t(Jac)
@@ -126,7 +133,7 @@ ergm.MEM_count<-function(model,
 
     MEM<-matrix(c(MEM,MEM.se,MEM.z,P.MEM),nrow=1,ncol=4)
     colnames(MEM)<-c("MEM","Delta SE","Z","P")
-    rownames(MEM)<-var1
+    rownames(MEM)<-ifelse(length(var1),paste(var1,collapse="+"),var1)
     MEM<-signif(MEM,digits=5)
 
     if(return.dydx==TRUE){

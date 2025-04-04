@@ -7,14 +7,20 @@ ERGM function to compute average marginal effects for main effects or at various
 
 }
 \usage{
-ergm.AME(model,var1,var2=NULL,inter=NULL, at.2=NULL,  at.controls=NULL,
-                   control_vals=NULL,return.dydx=FALSE,
+ergm.AME(model,
+        var1,
+        var2=NULL,
+        inter=NULL,
+        at.2=NULL,
+        at.controls=NULL,
+        control_vals=NULL,
+        return.dydx=FALSE,
         return.at.2=FALSE)
 }
 \arguments{
   \item{model}{the ergm object to be analyzed.
 }
-\item{var1}{the character string containing the name of the focal variable on which to compute the average marginal effect. If var2 is NULL, this is the average marginal effect.}
+\item{var1}{the character string containing the name of the focal variable on which to compute the average marginal effect. A vector of character strings can be provided matching model output to compute the marginal effect of a linear combination of covariates.}
 \item{var2}{if examining moderation, the character string containing the name of the moderator variable. Default value is NULL.}
 \item{inter}{if examining moderation, the character string containing the name of the interaction between var1 and var2. Default value is NULL.}
 \item{at.2}{the levels of var2 at which to compute the average marginal effects. If var2=NULL, this parameter is ignored. If var2!=NULL and at.2=NULL, the function computes the AME at each unique value of var2. at.2 can also be set to meaningful values, such as the mean of var2 or other discrete values of interest. If var2 is discrete, leaving at.2 NULL will compute the AME for each discrete category of the moderator variable. It is usually safe to leave at.2=NULL unless examining a large network where var2 has a large number of unique values, in which case computation times can be restrictive.}
@@ -45,14 +51,17 @@ If a moderator is specified, a list is returned with the following elements:
 
 }
 \references{
-Duxbury, Scott W. Forthcoming. "The Problem of Scaling in Exponential Random Graph Models." \emph{Sociological Methods & Research}.
+Duxbury, Scott W. 2023. "The Problem of Scaling in Exponential Random Graph Models." \emph{Sociological Methods & Research}.
+
+Duxbury, Scott W., and Jenna Wertsching. 2023. "Scaling Bias in Pooled Exponential Random Graph Models." Social Networks.
+
 
 Long, J. Scott, and Sarah Mustillo. 2018. "Using Predictions and Marginal Effects to Compare Groups in Regression Models for Binary Outcomes." \emph{Sociological Methods and Research}
 
 Mize, Trenton D. 2019. "Best Practices for Estimating, Interpreting, and Presenting Nonlinear Interaction Effects." \emph{Sociological Science}
 }
 \author{
-Scott Duxbury, Assistant Professor, University of North Carolina--Chapel Hill, Department of Sociology.
+Scott Duxbury, Associate Professor, University of North Carolina--Chapel Hill, Department of Sociology.
 }
 \note{
 Syntax is loosely based on the margins package by Thomas Leeper and Stata's margins commands. Currently only available for two-way interactions.}

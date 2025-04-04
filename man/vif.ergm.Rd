@@ -18,10 +18,10 @@ Computes the variance inflation factor using the covariance matrix of the ERGM e
 Returns a matrix of VIFs for each model parameter. Higher values indicate that the variable in one column of the data matrix is highly correlated with a linear combination of the remaining model covariates. High VIFs can also arise from a large bivariate correlation.
 }
 \references{
-Duxbury, Scott W. 2018. "Diagnosing Multicollinearity in Exponential Random Graph Models" \emph{Sociological Methods and Research.}
+Duxbury, Scott W. 2021. "Diagnosing Multicollinearity in Exponential Random Graph Models" \emph{Sociological Methods and Research.}
 }
 \author{
-Scott Duxbury, Assistant Professor, University of North Carolina--Chapel Hill, Department of Sociology.
+Scott Duxbury, Associate Professor, University of North Carolina--Chapel Hill, Department of Sociology.
 }
 
 

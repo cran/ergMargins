@@ -1,0 +1,6 @@
+ergMargins v 1.5
+==================
+- New functionality for tergm, stregm, ergm.count, and mlergm objects
+- New under-the-hood functionality to speed up marginal effect estimation
+- Bootstrap standard errors for btergm objects
+- new ergm.MSE and ergm.msma commands for computation and comparison of marginal substructural effects

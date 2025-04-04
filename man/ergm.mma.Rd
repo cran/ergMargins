@@ -6,8 +6,13 @@ Function to conduct marginal effects mediation analysis in ERGM.
 \description{
 ergm.mma is a function to conduct mediation analysis in ERGM using marginal effects. It computes the total, direct, and indirect average marginal effects for two nested ERGMs fit to the same data. Can be used with discrete or continuous mediators and for multiple mediator analyses. Currently accepts \code{ergm}, \code{btergm}, \code{mtergm}, \code{ergm.count}, \code{mlergm}, and \code{ergm.multi} objects.}
 \usage{
-ergm.mma(restricted.model,full.model,direct.effect,mediator,
-                  at.controls=NULL, control_vals=NULL,ME="AME")
+ergm.mma(restricted.model,
+          full.model,
+          direct.effect,
+          mediator,
+          at.controls=NULL,
+          control_vals=NULL,
+          ME="AME")
 }
 \arguments{
   \item{restricted.model}{the ergm without the mediator variable.
@@ -39,12 +44,11 @@ Returns a table including the point estimates and standard errors for total, dir
 
 }
 \references{
-Duxbury, Scott W. Forthcoming. "The Problem of Scaling in Exponential Random Graph Models." \emph{Sociological Methods & Research}.
+Duxbury, Scott W. 2023. "The Problem of Scaling in Exponential Random Graph Models." \emph{Sociological Methods & Research}.
 
-Karlson, Kristian Bernt, Holm, Anders, and Richard Breen. 2012. "Comparing Regression Coefficients Between Same-sample Nested Models Using Logit and Probit: A New Method." \emph{Sociological Methodology} 42: 286 - 313.
 }
 \author{
-Scott Duxbury, Assistant Professor, University of North Carolina--Chapel Hill, Department of Sociology.
+Scott Duxbury, Associate Professor, University of North Carolina--Chapel Hill, Department of Sociology.
 }
 \note{
 Note that ergm.mma may have restrictive run times in large networks or high dimensional models.

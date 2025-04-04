@@ -90,12 +90,19 @@ ergm.AME_boot<-function(model,
   if(is.null(var2)){
 
 
+    if(length(var1)>1){
+      AME.fun<-function(theta){
+
+        ME.ergm<-sapply(names(theta),function(x)
+          (p*(1-p)*sum(theta[var1])))
+        mean(ME.ergm,na.rm = TRUE)}
+    }else{
     AME.fun<-function(theta){
 
       ME.ergm<-sapply(names(theta),function(x)
         (p*(1-p)*theta[var1]))
       mean(ME.ergm,na.rm = TRUE)}
-
+    }
 
     AME<-AME.fun(theta)
     AME_boots<-apply(theta_boot,1,FUN=AME.fun)
@@ -106,7 +113,7 @@ ergm.AME_boot<-function(model,
 
     AME<-matrix(c(AME,AME.se,AME.z,P.AME),nrow=1,ncol=4)
     colnames(AME)<-c("AME","Bootstrap SE","Z","P")
-    rownames(AME)<-var1
+    rownames(AME)<-ifelse(length(var1)==1,paste(var1,collapse="+"),var1)
     AME<-signif(AME,digits=5)
 
     if(return.dydx==TRUE){

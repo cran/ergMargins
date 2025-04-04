@@ -28,7 +28,13 @@ ergm.MEM<-function(model,
                    at.controls=NULL,
                    control_vals=NULL,
                    return.dydx=FALSE){
-
+  if(length(var1)>1&&!is.null(var2)){
+    stop("Joint tests not allowed for interactions. Please respecify.")
+  }
+  if(length(var1)>1&&return.dydx==TRUE){
+    message("dydx not avaiable for joint tests")
+    return.dydx<-FALSE
+  }
   if(class(model)[1]%in%"btergm"){
     out<-ergm.MEM_boot(model=model,
                        var1=var1,
@@ -115,6 +121,16 @@ ergm.MEM<-function(model,
     }
   }
 
+  #handle offset
+  offset_ind<-pmatch("offset",names(theta))
+  if(!is.na(offset_ind)){
+    if(!class(model)[1]%in%"ergm.ego"){
+      dyad.mat<-dyad.mat[,-offset_ind]
+    }
+    theta<-theta[-offset_ind]
+    vc<-vc[-offset_ind,-offset_ind]
+  }
+
   if(any(names(theta)!=colnames(dyad.mat))){
     colnames(dyad.mat)<-names(theta) #make sure names align
   }
@@ -135,13 +151,7 @@ ergm.MEM<-function(model,
     }
   }
 
-  #handle offset
-  offset_ind<-pmatch("offset",names(theta))
-  if(!is.na(offset_ind)){
-    dyad.mat<-dyad.mat[,-offset_ind]
-    theta<-theta[-offset_ind]
-    vc<-vc[-offset_ind,-offset_ind]
-  }
+
 
 
   #create marginal effects
@@ -169,12 +179,19 @@ ergm.MEM<-function(model,
   ##marginal effects with no interaction
   if(is.null(var2)){
 
-    MEM.fun<-function(theta){
+    if(length(var1)>1){
+      MEM.fun<-function(theta){
 
-      ME.ergm<-sapply(names(theta),function(x)
+        ME.ergm<-sapply(names(theta),function(x)
+          (p*(1-p)*sum(theta[var1])))
+        mean(ME.ergm,na.rm = TRUE)}
+    }else{
+       MEM.fun<-function(theta){
+
+        ME.ergm<-sapply(names(theta),function(x)
         (p*(1-p)*theta[var1]))
-      mean(ME.ergm,na.rm = TRUE)}
-
+        mean(ME.ergm,na.rm = TRUE)}
+    }
     MEM<-MEM.fun(theta)
     Jac<-numDeriv::jacobian(MEM.fun,theta)
     variance.mem<-Jac%*%vc%*%t(Jac)
@@ -186,7 +203,7 @@ ergm.MEM<-function(model,
 
     MEM<-matrix(c(MEM,MEM.se,MEM.z,P.MEM),nrow=1,ncol=4)
     colnames(MEM)<-c("MEM","Delta SE","Z","P")
-    rownames(MEM)<-var1
+    rownames(MEM)<-ifelse(length(var1)==1,var1,paste(var1,collapse="+"))
     MEM<-signif(MEM,digits=5)
 
     if(return.dydx==TRUE){

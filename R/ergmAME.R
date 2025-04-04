@@ -31,6 +31,14 @@ ergm.AME<-function(model,
                    control_vals=NULL,
                    return.dydx=FALSE,
                    return.at.2=FALSE){
+  if(length(var1)>1&&!is.null(var2)){
+    stop("Joint tests not allowed for interactions. Please respecify.")
+  }
+
+  if(length(var1)>1&&return.dydx==TRUE){
+    message("dydx not avaiable for joint tests")
+    return.dydx<-FALSE
+  }
 
   if(class(model)[1]%in%"btergm"){
     out<-ergm.AME_boot(model=model,
@@ -120,6 +128,16 @@ ergm.AME<-function(model,
     }
   }
 
+  #handle offset
+  offset_ind<-pmatch("offset",names(theta))
+  if(!is.na(offset_ind)){
+    if(!class(model)[1]%in%"ergm.ego"){
+      dyad.mat<-dyad.mat[,-offset_ind]
+    }
+    theta<-theta[-offset_ind]
+    vc<-vc[-offset_ind,-offset_ind]
+  }
+
 
   if(any(names(theta)!=colnames(dyad.mat))){
     colnames(dyad.mat)<-names(theta) #make sure names align
@@ -142,14 +160,6 @@ ergm.AME<-function(model,
 
 
   }
-  #handle offset
-  offset_ind<-pmatch("offset",names(theta))
-  if(!is.na(offset_ind)){
-    dyad.mat<-dyad.mat[,-offset_ind]
-    theta<-theta[-offset_ind]
-    vc<-vc[-offset_ind,-offset_ind]
-  }
-
 
   p<-1/(1+exp(-(dyad.mat%*%theta)))
 
@@ -186,12 +196,20 @@ ergm.AME<-function(model,
       ##marginal effects with no interaction
  if(is.null(var2)){
 
+   if(length(var1)>1){
+     AME.fun<-function(theta){
+
+     ME.ergm<-sapply(names(theta),function(x)
+       (p*(1-p)*sum(theta[var1])))
+     mean(ME.ergm,na.rm = TRUE)}
+   }else{
 
       AME.fun<-function(theta){
 
         ME.ergm<-sapply(names(theta),function(x)
           (p*(1-p)*theta[var1]))
         mean(ME.ergm,na.rm = TRUE)}
+    }
 
     AME<-AME.fun(theta)
     Jac<-numDeriv::jacobian(AME.fun,theta)
@@ -203,7 +221,7 @@ ergm.AME<-function(model,
 
     AME<-matrix(c(AME,AME.se,AME.z,P.AME),nrow=1,ncol=4)
     colnames(AME)<-c("AME","Delta SE","Z","P")
-    rownames(AME)<-var1
+    rownames(AME)<-ifelse(length(var1)>1,paste(var1,collapse="+"),var1)
     AME<-signif(AME,digits=5)
 
     if(return.dydx==TRUE){

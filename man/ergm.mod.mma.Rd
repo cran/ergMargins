@@ -5,9 +5,17 @@
 \description{
 ergm.mod.mma is a function to asssess mediated moderation in ERGM using average marginal effects (AME), e.g. when the main effect is a part of an interaction. If joint=TRUE, the function computes the total, partial, and indirect effects for all parts of the interaction. If int.eff=TRUE, the function computes the same values, but only for the moderating effect (e.g., only the moderated portion). Both joint=TRUE and int.eff=TRUE can be set simultaneously. Currently accepts \code{ergm}, \code{btergm}, \code{mtergm}, \code{ergm.count}, \code{mlergm}, and \code{ergm.multi} objects.}
 \usage{
-ergm.mod.mma(restricted.model,full.model,var1, var2, inter,mediator,
-                   at.2=NULL,joint=FALSE,int.eff=FALSE,
-                   at.controls=NULL, control_vals=NULL)}
+ergm.mod.mma(restricted.model,
+             full.model,
+             var1,
+             var2,
+             inter,
+             mediator,
+             at.2=NULL,
+             joint=FALSE,
+             int.eff=FALSE,
+             at.controls=NULL,
+             control_vals=NULL)}
 \arguments{
 
   \item{restricted.model}{the ergm without the mediator variable.
@@ -46,10 +54,10 @@ If both int.eff=TRUE and joint=TRUE, returns a list with elements:
 \item{moderator.effect}{a list containing all elements when int.eff=TRUE.}
 }
 \references{
-Duxbury, Scott W. Forthcoming. "The Problem of Scaling in Exponential Random Graph Models." \emph{Sociological Methods & Research}.
+Duxbury, Scott W. 2023. "The Problem of Scaling in Exponential Random Graph Models." \emph{Sociological Methods & Research}.
 }
 \author{
-Scott Duxbury, Assistant Professor, University of North Carolina--Chapel Hill, Department of Sociology.
+Scott Duxbury, Associate Professor, University of North Carolina--Chapel Hill, Department of Sociology.
 
 }
 

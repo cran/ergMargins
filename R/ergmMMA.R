@@ -11,6 +11,9 @@ ergm.mma<-function(restricted.model,full.model,direct.effect,mediator,
                    at.controls=NULL,
                    control_vals=NULL,
                    ME="AME"){
+  if(length(direct.effect)>1){
+    stop("Joint parameter tests not currently supported with ergm.mma.")
+  }
 
   if(class(restricted.model)%in%"btergm"){
     out<-ergm.mma_boot(restricted.model=restricted.model,
@@ -20,6 +23,7 @@ ergm.mma<-function(restricted.model,full.model,direct.effect,mediator,
                        at.controls=at.controls,
                        control_vals=control_vals,
                        ME=ME)
+    return(out)
   }
   if(!ME%in%c("AME","MEM")){
     warning("ME must be specified as AME or MEM. Returning the AME.")
@@ -45,33 +49,6 @@ ergm.mma<-function(restricted.model,full.model,direct.effect,mediator,
       stop("Variables specified in any.controls must appear in both models to be used.")
     }
   }
-    if(class(restricted.model)%in%"btergm"){
-    rownames(tot.AME)<-paste("total effect:",rownames(tot.AME))
-    rownames(p.AME)<-paste("partial effect:",rownames(p.AME))
-
-    ###indirect effect
-
-    mma.me<-tot.AME[1,1]-p.AME[1,1]
-    boots<-
-    mma.se<-sqrt(tot.AME[,2]^2+p.AME[,2]^2-cov.ame)
-    mma.z<-mma.me/mma.se
-    p.mma<-2*stats::pnorm(-abs(mma.z))
-
-    ind<-matrix(signif(c(mma.me,mma.se,mma.z,p.mma),digits=5),nrow=1,ncol=4)
-    colnames(ind)<-colnames(tot.AME)
-    if(length(mediator)>1) {
-      mediator<-paste(mediator,collapse=", ")}
-    rownames(ind)<-paste("indirect effect:",direct.effect,"->",mediator)
-
-    out<-rbind(tot.AME,p.AME,ind)
-    proportion.mediated<-1-(p.AME[1]/tot.AME[1])
-    attr(out,"description")<-paste("proportion of",direct.effect,"mediated by",mediator," = ",round(proportion.mediated,digits=3))
-
-
-    return(out)
-
-  }
-
 
   if(ME%in%"AME"){
 

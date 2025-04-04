@@ -16,6 +16,9 @@ ergm.mod.mma<-function(restricted.model,full.model,var1, var2, inter,mediator,
                    at.2=NULL,joint=FALSE,int.eff=FALSE,
                    at.controls=NULL,control_vals=NULL){
 
+  if(length(var1)>1){
+    stop("Joint parameter tests not currently supported with ergm.mod.mma.")
+  }
   ##check at.controls appear in both models
   if(!is.null(at.controls)){
     if(class(restricted.model)%in%"mlergm"){

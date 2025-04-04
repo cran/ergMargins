@@ -23,7 +23,7 @@ ergm.mma_boot<-function(restricted.model,full.model,direct.effect,mediator,
 
 
 
-  ##check at.controls appear in both models
+  ##check at.controls appear in both modelsz
   if(!is.null(at.controls)){
     if(!all(at.controls%in%names(theta1))){
       stop("Variables specified in any.controls must appear in both models to be used.")
