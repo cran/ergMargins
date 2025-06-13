@@ -6,7 +6,13 @@
 #' @param verbose Determines whether to print updates as the function progresses. Appealing in large networks.
 #' edge.prob2()
 
-getformula<-function(x){x@formula}
+getformula<-function(x){
+  if(class(x)%in%c("mtergm","btergm")){
+    x@formula
+  }else{
+    x$formula
+  }
+  }
 setMethod("getformula", signature = className("btergm", "btergm"),
           definition = function(x) x@formula)
 
@@ -35,6 +41,14 @@ edge.prob2<-function (model, verbose = FALSE)
                "mtergm objects."))
   }
 
+  if(class(model)[1]%in%"mtergm" && is.curved(model@ergm)){
+    stop("edge.prob2 does not currently supported curved family models. Please provide a model using fixed decay parameters.")
+  }
+
+  if(class(model)[1]%in%"ergm" && is.curved(model)){
+    stop("edge.prob2 does not currently supported curved family models. Please provide a model using fixed decay parameters.")
+  }
+
   ##check for duplicated names
   if(class(object)%in%c("ergm","mlergm")){
     if(any(duplicated(network::get.vertex.attribute(model$network,"vertex.names")))){
@@ -59,9 +73,7 @@ edge.prob2<-function (model, verbose = FALSE)
   }else{
     coefs <- btergm::coef(object)
   }
-  if(ergm::is.curved(object)){
-    coefs<-ergm::ergm.eta(coefs,object$etamap)
-  }
+
 
 
 

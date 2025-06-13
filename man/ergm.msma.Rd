@@ -4,7 +4,7 @@
 Function to compare marginal substructrual effects between nested ERGMs.
 }
 \description{
-\code{ergm.msmsa} tests the difference in a marginal substructural effect between two ERGMs fit to the same network that differ only in their specification. It computes the total, direct, and indirect marginal substructural effects. Can be used with discrete or continuous mediators and for multiple mediator analyses. Currently accepts \code{ergm}, \code{btergm}, \code{mtergm}, \code{ergm.count}, \code{mlergm}, and \code{ergm.multi} objects.}
+\code{ergm.msma} tests the difference in a marginal substructural effect between two ERGMs fit to the same network that differ only in their specification. It computes the total, direct, and indirect marginal substructural effects. Can be used with discrete or continuous mediators and for multiple mediator analyses. Currently accepts \code{ergm}, \code{btergm}, \code{mtergm}, \code{ergm.count}, \code{mlergm}, and \code{ergm.multi} objects.}
 \usage{
 ergm.msma(restricted.model,
                     full.model,
@@ -103,9 +103,9 @@ data("faux.mesa.high")
 
 faux.mesa.high
 
-#does homophily explain triadic effects?
+#does sociality explain triadic effects?
 
-  #model without homophily
+  #model without sociality effects
 my.ergm1<-ergm(faux.mesa.high~edges+
                 nodematch("Grade")+
                 nodematch("Sex")+
@@ -117,7 +117,7 @@ my.ergm1<-ergm(faux.mesa.high~edges+
                                       MCMLE.maxit=120))
 
 
-  #model with homophily
+  #model with sociality effects
 my.ergm2<-ergm(faux.mesa.high~edges+
                 nodecov("Grade")+
                 nodefactor("Race")+
@@ -132,11 +132,12 @@ my.ergm2<-ergm(faux.mesa.high~edges+
                                       MCMLE.maxit=120))
 
 
-###gwesp as single mediator
+###sociality effects as mediators
 ergm.msma(my.ergm1,
             my.ergm2,
             direct_substructural_effect="gwesp.fixed.0.5",
-            mediator=c("nodematch.Grade","nodematch.Sex","nodematch.Race"),
+            mediator=c("nodecov.Grade","nodefactor.Sex.M","nodefactor.Race.White",
+            "nodefactor.Race.Other","nodefactor.Race.Hisp","nodefactor.Race.NatAm"),
             estimate="aMSE")
 
 

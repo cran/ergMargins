@@ -44,7 +44,7 @@ ergm.MSE(model,
 
 Computes the marginal substructural effect for a specified substructural term. Formally, the MSE for a unit is given by
 
-\deqn{MSE_{ij}=Pr(Y_{ij}=1|-y_{ij},\delta ^+_{ij}(y)=1,x_{ij})-Pr(Y_{ij}=0|-y_{ij},\delta ^+_{ij}(y)=1,x_{ij})}
+\deqn{MSE_{ij}=Pr(Y_{ij}=1|-y_{ij},\delta ^+_{ij}(y)=1,x_{ij})-Pr(Y_{ij}=0|-y_{ij},\delta ^+_{ij}(y)=0,x_{ij})}
 
 where \eqn{\delta ^+_{ij}(y)} is the substructural effect of interest. The \code{estimate} argument determines whether the MSE should be taken holding controls at observed values (when set to \code{"aMSE"}), holding controls at means (\code{"MSEm"}), or by combining the estimates from multiple substructures (when set to \code{"aTSE"}).
 

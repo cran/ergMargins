@@ -23,16 +23,19 @@ vif.ergm<-function(my.ergm){
       beta<-my.ergm$theta
 
     }else{
-      cor.mat<-stats::cov2cor(my.ergm$covar) #calculate correlation matrix
+      if(class(my.ergm)[1]%in%"mtergm"){
+        my.ergm<-my.ergm@ergm
+      }
+      cor.mat<-suppressWarnings(stats::cov2cor(my.ergm$covar)) #calculate correlation matrix
       beta<-stats::coef(my.ergm)
 
     }
 
     #omit edges, assign names to matrix
     rownames(cor.mat)<-colnames(cor.mat)<-names(beta)
-    corr5<-cor.mat[!rownames(cor.mat)%in%c("edges","Form~edges","Diss~edges","Persist~edges","Cross~edges","Change~edges"),
-                   !colnames(cor.mat)%in%c("edges","Form~edges","Diss~edges","Persist~edges","Cross~edges","Change~edges")]
-  }
+    corr5<-cor.mat[!rownames(cor.mat)%in%c("edges","Form~edges","Diss~edges","Persist~edges","Cross~edges","Change~edges","offset(edgecov.offsmat)"),
+                   !colnames(cor.mat)%in%c("edges","Form~edges","Diss~edges","Persist~edges","Cross~edges","Change~edges","offset(edgecov.offsmat)")]
+    }
 
   corr5<-corr5[!is.na(corr5[1:nrow(corr5)]),]
   corr5<-corr5[,which(!is.na(corr5[1,1:ncol(corr5)]))]
@@ -48,7 +51,7 @@ vif.ergm<-function(my.ergm){
     VIFS[1,i]<-1/(1-Rsq)
   }
 
-  colnames(VIFS)<-names(beta[!names(beta)%in%c("edges","Form~edges","Diss~edges","Persist~edges","Cross~edges","Change~edges")])
+  colnames(VIFS)<-names(beta[!names(beta)%in%c("edges","Form~edges","Diss~edges","Persist~edges","Cross~edges","Change~edges","offset(edgecov.offsmat)")])
 
   if(class(my.ergm)[1]%in%"btergm"){
 

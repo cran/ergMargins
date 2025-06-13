@@ -78,14 +78,11 @@ ergm.MSE<-function(model,
   }
 
   if(class(model)[1]%in%"mtergm"){
-    dyad.mat<-edge.prob2(model)[,-c(1)]
-    dyad.full.mat<-dyad.mat
-    p<-dyad.mat$probability
-    start.drops<-ncol(dyad.mat)-5
-    dyad.mat<-dyad.mat[,-c(start.drops:ncol(dyad.mat))]
-
+    dyad.mat<-ergmMPLE(model@ergm$formula,output="dyadlist",basis=model@ergm$network)
+    dyad.mat<-dyad.mat$predictor[,-c(1:2,ncol(dyad.mat$predictor))]
     vc <- stats::vcov(model@ergm)
-    vc<-vc[!rownames(vc)%in%"edgecov.offsmat",!colnames(vc)%in%"edgecov.offsmat"]
+    vc<-vc[!rownames(vc)%in%"offset(edgecov.offsmat)",
+           !colnames(vc)%in%"offset(edgecov.offsmat)"]
 
 
   }else{
@@ -113,30 +110,56 @@ ergm.MSE<-function(model,
   ##handle curved ergms by removing decay parameter
   #note that the micro-level change statistics are already properly weighted,
   #so decay term is not needed for predictions
+
   if(class(model)[1]%in%"mtergm"){
 
     if(ergm::is.curved(model@ergm)){
-      curved.term<-vector(length=length(model$etamap$curved))
-      for(i in 1:length(model$etamap$curved)){
-        curved.term[i]<-model$etamap$curved[[i]]$from[2]
+      curved.term<-curved.term_main<-vector(length=length(model@ergm$etamap$curved))
+      curved_loc_from<-curved_loc_to<-list()
+      for(i in 1:length(model@ergm$etamap$curved)){
+        curved.term_main[i]<-model@ergm$etamap$curved[[i]]$to[1]
+        curved.term[i]<-model@ergm$etamap$curved[[i]]$from[2]
+        curved_loc_from[[i]]<-model@ergm$etamap$curved[[i]]$from
+        curved_loc_to[[i]]<-model@ergm$etamap$curved[[i]]$to
+
       }
-      #theta<-theta[-c(curved.term)]
-      theta<-ergm::ergm.eta(theta,model@ergm$etamap)
-      names(theta)<-colnames(dyad.mat[,-c(1)])
+
+      curved_loc_from_list<-unlist(curved_loc_from)
+      theta<-theta[-c(curved.term)]
+
+      all_drops<-unlist(curved_loc_to)
+      all_drops<-all_drops[!all_drops%in%c(curved.term_main)]
+      dyad.mat<-dyad.mat[,-c(all_drops)]
+      vc<-vc[-c(curved.term),-c(curved.term)]
+
 
     }
 
   }else{
     if(ergm::is.curved(model)){
-      curved.term<-vector(length=length(model$etamap$curved))
+      curved.term<-curved.term_main<-vector(length=length(model$etamap$curved))
+      curved_loc_from<-curved_loc_to<-list()
       for(i in 1:length(model$etamap$curved)){
+        curved.term_main[i]<-model$etamap$curved[[i]]$to[1]
         curved.term[i]<-model$etamap$curved[[i]]$from[2]
+        curved_loc_from[[i]]<-model$etamap$curved[[i]]$from
+        curved_loc_to[[i]]<-model$etamap$curved[[i]]$to
+
       }
-      # theta<-theta[-c(curved.term)]
-      theta<-ergm::ergm.eta(theta,model$etamap)
-      names(theta)<-colnames(dyad.mat)
+
+      curved_loc_from_list<-unlist(curved_loc_from)
+      theta<-theta[-c(curved.term)]
+      all_drops<-unlist(curved_loc_to)
+      all_drops<-all_drops[!all_drops%in%c(curved.term_main)]
+      dyad.mat<-dyad.mat[,-c(all_drops)]
+      vc<-vc[-c(curved.term),-c(curved.term)]
+
+
     }
   }
+
+
+
 
   #handle offset
   offset_ind<-pmatch("offset",names(theta))
@@ -251,6 +274,8 @@ ergm.MSE<-function(model,
      dyad_mat1[,colnames(dyad_mat1)%in%c(var2,inter)]<-at.2[i]
    }
 
+
+
    MSE_fun<-function(theta){
      p_0<-1/(1+exp(-(dyad_mat0%*%theta)))
      p_1<-1/(1+exp(-(dyad_mat1%*%theta)))
@@ -259,11 +284,16 @@ ergm.MSE<-function(model,
 
    }
 
+
+   #return(list(theta,dyad_mat0))
+
+
     #no moderator
    if(i==1){
      MSE<-MSE_fun(theta)
      J<-numDeriv::jacobian(MSE_fun,theta)
      Jac<-as.matrix(J)
+    # return(list(Jac,vc))
      variance.MSE<-J%*%vc%*%t(J)
      MSE.se<-sqrt(variance.MSE)
 
@@ -272,6 +302,9 @@ ergm.MSE<-function(model,
      MSE<-c(MSE,MSE_fun(theta))
      J<-numDeriv::jacobian(MSE_fun,theta)
      Jac<-rbind(Jac,as.matrix(J))
+
+     return(list(Jac,vc))
+
      variance.MSE<-J%*%vc%*%t(J)
 
      MSE.se<-c(MSE.se,sqrt(variance.MSE))

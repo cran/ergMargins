@@ -97,11 +97,13 @@ ergm.msma<-function(restricted.model,
   tot.Jac_expanded[names(tot.Jac_expanded)%in%names(tot.Jac)]<-tot.Jac
 
   #get vcovs
-  if(class(restricted.model)%in%"mtergm"|class(restricted.model)%in%"btergm"){
+  if(class(restricted.model)%in%"mtergm"){
     tot.vc <- stats::vcov(restricted.model@ergm)
-    tot.vc <-tot.vc[!rownames(tot.vc)%in%"edgecov.offsmat",!colnames(tot.vc)%in%"edgecov.offsmat"]
+    tot.vc <-tot.vc[!rownames(tot.vc)%in%c("edgecov.offsmat","offset(edgecov.offsmat)"),
+                    !colnames(tot.vc)%in%c("edgecov.offsmat","offset(edgecov.offsmat)")]
     p.vc <- stats::vcov(full.model@ergm)
-    p.vc <-p.vc[!rownames(p.vc)%in%"edgecov.offsmat",!colnames(p.vc)%in%"edgecov.offsmat"]
+    p.vc <-p.vc[!rownames(p.vc)%in%c("edgecov.offsmat","offset(edgecov.offsmat)"),
+                !colnames(p.vc)%in%c("edgecov.offsmat","offset(edgecov.offsmat)")]
 
   }else{
 

@@ -70,14 +70,11 @@ ergm.AME<-function(model,
   }
 
   if(class(model)[1]%in%"mtergm"){
-    dyad.mat<-edge.prob2(model)[,-c(1)]
-    dyad.full.mat<-dyad.mat
-    p<-dyad.mat$probability
-    start.drops<-ncol(dyad.mat)-5
-    dyad.mat<-dyad.mat[,-c(start.drops:ncol(dyad.mat))]
-
+    dyad.mat<-ergmMPLE(model@ergm$formula,output="dyadlist",basis=model@ergm$network)
+    dyad.mat<-dyad.mat$predictor[,-c(1:2,ncol(dyad.mat$predictor))]
     vc <- stats::vcov(model@ergm)
-    vc<-vc[!rownames(vc)%in%"edgecov.offsmat",!colnames(vc)%in%"edgecov.offsmat"]
+    vc<-vc[!rownames(vc)%in%"offset(edgecov.offsmat)",
+           !colnames(vc)%in%"offset(edgecov.offsmat)"]
 
 
   }else{
@@ -106,14 +103,14 @@ ergm.AME<-function(model,
   if(class(model)[1]%in%"mtergm"){
 
     if(ergm::is.curved(model@ergm)){
-      curved.term<-vector(length=length(model$etamap$curved))
-      for(i in 1:length(model$etamap$curved)){
-        curved.term[i]<-model$etamap$curved[[i]]$from[2]
+      curved.term<-vector(length=length(model@ergm$etamap$curved))
+      for(i in 1:length(model@ergm$etamap$curved)){
+        curved.term[i]<-model@ergm$etamap$curved[[i]]$from[2]
       }
       #theta<-theta[-c(curved.term)]
       theta<-ergm::ergm.eta(theta,model@ergm$etamap)
-      names(theta)<-colnames(dyad.mat[,-c(1)])
-
+      theta<-theta[-c(length(theta))]
+      names(theta)<-colnames(dyad.mat)
     }
 
   }else{
