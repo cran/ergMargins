@@ -1,4 +1,4 @@
-17cf88a0be54bd3c2b39bd76ab5bfe5c *DESCRIPTION
+a09ef0760a3a34e4ec0a7146454dd25f *DESCRIPTION
 11110d813d576ed8c2b9d1ab268b3eb2 *NAMESPACE
 332bdd1230c89e7412f1c2e76a4c73bc *NEWS
 83de530bf7ab8d7365fa08744e504427 *R/GW_helper.R
@@ -6,7 +6,7 @@ b54bc2b7ed65442d3d26fa1839bb540c *R/edgeprob2.R
 cd2c12a478ca9390a06b93d39b1e55f3 *R/ergm.MSE.R
 75a84d9e814112db0e22a65dbdb2d6e7 *R/ergm.MSE_boot.R
 0e19976ad439ea748ddf87d8b45b9eb8 *R/ergm.MSE_count.R
-f6c1b81372798017a77fe828a5da1908 *R/ergm.MSMA.R
+f3d4aaf1e29f726e8c99a99b67e63b64 *R/ergm.MSMA.R
 988af2706c158a109319d3ec6dc03027 *R/ergm.MSMA_boot.R
 db264e1c09ab6b21eeeab24a01fde253 *R/ergm.mod.mma.R
 05b75578a2825a8ed4e0329ddb6613ff *R/ergmAME.R
@@ -16,7 +16,7 @@ b1802ccbb021f610c9ce3288edc5ddce *R/ergmAME_boot.R
 f3cf4c026b3342daf3bfa8abdf8c5342 *R/ergmMEM.R
 76b7b3677adf6f22d16a2b303d7c3ead *R/ergmMEM_boot.R
 d06331340e381249d23639c0810fc991 *R/ergmMEM_count.R
-9b97b21b46c838cca7bb3a7a23383390 *R/ergmMMA.R
+5a6f70c12bda4b8a10b2ff0d9ce8d43c *R/ergmMMA.R
 0306267e64470d94234ef480b5ed1753 *R/ergmMMA_boot.R
 09ff92e288834b898f2a90dcc2faee53 *R/tergmprepare.R
 455a69f62e277b092fdce3e1cdaa4158 *R/timecov.R

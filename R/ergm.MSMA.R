@@ -19,7 +19,7 @@ ergm.msma<-function(restricted.model,
                     estimate="aMSE"){
 
 
-  if(class(restricted.model)%in%"btergm"){
+  if("btergm"%in%class(restricted.model)){
     out<-ergm.msma_boot(restricted.model=restricted.model,
                         full.model=full.model,
                         direct_substructural_effect=direct_substructural_effect,
@@ -34,7 +34,7 @@ ergm.msma<-function(restricted.model,
   }
 
 
-  if(class(restricted.model)%in%"mlergm"){
+  if("mlergm"%in%class(restricted.model)){
     theta1<-restricted.model$theta
     theta2<-full.model$theta
 
@@ -97,7 +97,7 @@ ergm.msma<-function(restricted.model,
   tot.Jac_expanded[names(tot.Jac_expanded)%in%names(tot.Jac)]<-tot.Jac
 
   #get vcovs
-  if(class(restricted.model)%in%"mtergm"){
+  if(class(restricted.model)[1]%in%"mtergm"){
     tot.vc <- stats::vcov(restricted.model@ergm)
     tot.vc <-tot.vc[!rownames(tot.vc)%in%c("edgecov.offsmat","offset(edgecov.offsmat)"),
                     !colnames(tot.vc)%in%c("edgecov.offsmat","offset(edgecov.offsmat)")]
@@ -112,7 +112,7 @@ ergm.msma<-function(restricted.model,
 
   }
 
-  if(class(restricted.model)%in%"mlergm"){
+  if(class(restricted.model)[1]%in%"mlergm"){
     tot.vc<-solve(tot.vc)
     p.vc<-solve(p.vc)
   }

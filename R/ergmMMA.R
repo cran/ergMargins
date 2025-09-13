@@ -15,7 +15,7 @@ ergm.mma<-function(restricted.model,full.model,direct.effect,mediator,
     stop("Joint parameter tests not currently supported with ergm.mma.")
   }
 
-  if(class(restricted.model)%in%"btergm"){
+  if("btergm"%in%class(restricted.model)){
     out<-ergm.mma_boot(restricted.model=restricted.model,
                        full.model=full.model,
                        direct.effect=direct.effect,
@@ -30,7 +30,7 @@ ergm.mma<-function(restricted.model,full.model,direct.effect,mediator,
     ME<-"AME"
   }
 
-    if(class(restricted.model)%in%"mlergm"){
+    if(class(restricted.model)[1]%in%"mlergm"){
       theta1<-restricted.model$theta
       theta2<-full.model$theta
 
@@ -95,7 +95,7 @@ ergm.mma<-function(restricted.model,full.model,direct.effect,mediator,
   tot.Jac_expanded[names(tot.Jac_expanded)%in%names(tot.Jac)]<-tot.Jac
 
   #get vcovs
-  if(class(restricted.model)%in%"mtergm"){
+  if("mtergm"%in%class(restricted.model)){
     tot.vc <- stats::vcov(restricted.model@ergm)
     tot.vc <-tot.vc[!rownames(tot.vc)%in%c("edgecov.offsmat","offset(edgecov.offsmat)"),
                     !colnames(tot.vc)%in%c("edgecov.offsmat","offset(edgecov.offsmat)")]
@@ -110,7 +110,7 @@ ergm.mma<-function(restricted.model,full.model,direct.effect,mediator,
 
   }
 
-  if(class(restricted.model)%in%"mlergm"){
+  if("mlergm"%in%class(restricted.model)){
     tot.vc<-solve(tot.vc)
     p.vc<-solve(p.vc)
   }
