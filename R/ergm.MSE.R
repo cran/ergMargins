@@ -303,7 +303,7 @@ ergm.MSE<-function(model,
      J<-numDeriv::jacobian(MSE_fun,theta)
      Jac<-rbind(Jac,as.matrix(J))
 
-     return(list(Jac,vc))
+    # return(list(Jac,vc))
 
      variance.MSE<-J%*%vc%*%t(J)
 

@@ -49,7 +49,7 @@ Duxbury, Scott W. 2023. "The Problem of Scaling in Exponential Random Graph Mode
 
 Duxbury, Scott W., and Jenna Wertsching. 2023. "Scaling Bias in Pooled Exponential Random Graph Models." Social Networks.
 
-Duxbury, Scott W. 2025. "Marginal Substructural Effects for Exponential Random Graph Models." Working Paper.
+Duxbury, Scott W. 2026. "Marginal Structural Effects for Exponential Random Graph Models." \emph{Sociological Methods & Research}.
 }
 \author{
 Scott Duxbury, Associate Professor, University of North Carolina--Chapel Hill, Department of Sociology.

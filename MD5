@@ -1,9 +1,9 @@
-a09ef0760a3a34e4ec0a7146454dd25f *DESCRIPTION
+aba05506a5184b72d745b9f0e4a7247c *DESCRIPTION
 11110d813d576ed8c2b9d1ab268b3eb2 *NAMESPACE
 332bdd1230c89e7412f1c2e76a4c73bc *NEWS
 83de530bf7ab8d7365fa08744e504427 *R/GW_helper.R
 b54bc2b7ed65442d3d26fa1839bb540c *R/edgeprob2.R
-cd2c12a478ca9390a06b93d39b1e55f3 *R/ergm.MSE.R
+8264741e5f603c149eabb46cc270998c *R/ergm.MSE.R
 75a84d9e814112db0e22a65dbdb2d6e7 *R/ergm.MSE_boot.R
 0e19976ad439ea748ddf87d8b45b9eb8 *R/ergm.MSE_count.R
 f3d4aaf1e29f726e8c99a99b67e63b64 *R/ergm.MSMA.R
@@ -25,8 +25,8 @@ ac91cc1fb0dd6dccaf25546c5d65588c *R/vif.ergm.R
 8a28f39eac3db4666dbe31dc407810be *man/edge.prob2.Rd
 de297aadfcd85b3f0921faf43f9e78a9 *man/ergm.mma.Rd
 2c121c18ed73b1a5bea44d98431a4a7b *man/ergm.mod.mma.Rd
-63b1bdb781d4bcfbde90231824866416 *man/ergm.msma.Rd
+9056b4f0b2152c3e3b42d03c77bdce92 *man/ergm.msma.Rd
 d9d1b7e7735e81364d867d64247f7994 *man/ergmAME.Rd
 9e642c0d90e59bde7ab3f3d03e9aece4 *man/ergmMEM.Rd
-ff048bfee3dae5c8781ad54b546f5040 *man/ergmMSE.Rd
+5d251c86f1f24f60b7b51d02a1cd762b *man/ergmMSE.Rd
 98bf48561a1d9ceff2e7282c639cc7a9 *man/vif.ergm.Rd
